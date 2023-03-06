@@ -8,6 +8,8 @@ Created on Tue Nov 15 16:00:04 2022
 @email: 934476300@qq.com
 @website: www.dsxquant.com
 """
+from dsxindexer.operators.muldiv_operator import MulDivOperator
+from dsxindexer.operators.plusminus_operator import PlusMinusOperator
 from dsxindexer.processors.operator_processor import OperatorProcessor
 from dsxindexer.tokenizer import ExpreItemDirection
 from dsxindexer.functioner import Functioner
@@ -15,7 +17,7 @@ from dsxindexer.tokenizer import Lexer,TokenType
 from dsxindexer.processors.factor_processor import FactorProcessor
 
 class Parser:
-    def __init__(self, lexer:Lexer,funcer:Functioner=Functioner()):
+    def __init__(self, lexer:Lexer,funcer:Functioner=Functioner(),namespace:str=None):
         # 传入词法解析器，把表达式转换为Token集合
         self.lexer = lexer
         # 这里相当于取得第一个词法解析器的Token
@@ -30,15 +32,21 @@ class Parser:
         self.factor_processor = FactorProcessor()
         # 最终返回结果
         self.result = None
+        # 变量树保存分支
+        self.namespace = namespace
 
     def parse(self):
         self.result = self.expr()
+        # 整个表达式计算完后清理变量缓存
+        # self.funcer.clear_variables()
         return self
 
     # 表达式字符串 递归开始
     def expr(self):
         # 处理项开始
         result = self.term()
+        # 最后处理加减
+        result = PlusMinusOperator(self.current_token,self,result).call()
         return result
 
     # 处理表达式项，就是表达式里面操作符函数等，意思是一个表达式有多少个操作项组合而成，分别处理这些项

@@ -2,6 +2,12 @@
 from dsxindexer.tokenizer import Token
 from dsxindexer.configer import TokenType
 
+class FactorMethodNotFoundError(BaseException):
+    pass
+
+class FactorNotNumberError(BaseException):
+    pass
+
 class BaseFactor:
     # 继承子类需要重写此字段
     type_name:TokenType = None

@@ -14,8 +14,8 @@ class OperatorProcessor(BaseProcessor):
         EqualOperator,
         # 乘除
         MulDivOperator,
-        # 加减
-        PlusMinusOperator,
+        # 加减 最后再处理加减
+        # PlusMinusOperator,
     ]
 
     def __init__(self) -> None:

@@ -90,12 +90,16 @@ class Lexer:
         self.direction = ExpreItemDirection.RIGHT
         # 处理函数
         result = ''
+        i = 0
         while self.current_char is not None and self.current_char!=configer.EXPR_END_CHART:
             result += self.current_char
-            # 遇到括号就是函数结束了
+            # 遇到括号就是函数结束了,需要解析到最后一个括号
+            if self.current_char == "(": i+=1
             if self.current_char == ")":
-                self.next()
-                break
+                i -=1
+                if i<=0:
+                    self.next()
+                    break
             self.next()
             
         return Token(TokenType.FUNCTION, func_name+str(result),self.direction)
@@ -112,11 +116,34 @@ class Lexer:
         self.next()
         return str(result)
     
-    def assign(self):
-        # 处理赋值符号
-        while self.current_char is not None and self.current_char in configer.ASSIGN_CHART:
+    # 提取括号
+    def paren(self):
+        # 遇到匹配的右括号就结束
+        result = ''
+        i = 1
+        while self.current_char is not None and self.current_char!=configer.EXPR_END_CHART:
+            # 遇到括号就是函数结束了,需要解析到最后一个括号
+            if self.current_char == "(":i+=1
+            if self.current_char == ")":
+                i -=1
+                if i<=0:
+                    self.next()
+                    break
+            result += self.current_char
+
             self.next()
-        return Token(TokenType.EQUAL, self.current_char,ExpreItemDirection.DEFAULT)
+        return Token(TokenType.LPAREN, str(result),self.direction)
+    
+    def assign(self):
+        result = ''
+        # 处理赋值符号
+        while self.current_char is not None and self.current_char!=configer.EXPR_END_CHART:
+            # 先跳过赋值符号
+            for i in range(len(configer.ASSIGN_CHART)-1):
+                self.next()
+            result += self.current_char
+            
+        return Token(TokenType.EQUAL, result,ExpreItemDirection.DEFAULT)
 
     # 核心函数，用于将输入的字符序列分割为一个个Token
     def get_next_token(self):
@@ -135,9 +162,9 @@ class Lexer:
                 return self.assign()
             
             # 右括号不需要处理
-            if self.current_char == TokenType.RPAREN:
+            if self.current_char == ')':
                 self.next()
-                return Token(TokenType.RPAREN, self.current_char,self.direction)
+                continue
             # 跳过空格
             if self.current_char.isspace():
                 self.skip_whitespace()
@@ -151,38 +178,31 @@ class Lexer:
             if self.current_char == '+':
                 # 移动字符
                 self.next()
-                return Token(TokenType.PLUS, self.current_char,self.direction)
+                return Token(TokenType.PLUS, "+",self.direction)
 
             if self.current_char == '-':
                 self.next()
-                return Token(TokenType.MINUS, self.current_char,self.direction)
+                return Token(TokenType.MINUS, "-",self.direction)
 
             if self.current_char == '*':
                 self.next()
-                return Token(TokenType.MUL, self.current_char,self.direction)
+                return Token(TokenType.MUL, "*",self.direction)
 
             if self.current_char == '/':
                 self.next()
-                return Token(TokenType.DIV, self.current_char,self.direction)
+                return Token(TokenType.DIV, "/",self.direction)
 
             if self.current_char == '(':
                 self.next()
-                return Token(TokenType.LPAREN, self.current_char,self.direction)
+                return self.paren()
             
             if self.current_char == '>':
                 self.next()
-                return Token(TokenType.GREATERTHEN, self.current_char,self.direction)
+                return Token(TokenType.GREATERTHEN, ">",self.direction)
             
             if self.current_char == '<':
                 self.next()
-                return Token(TokenType.GREATERTHEN, self.current_char,self.direction)
-            
-            
-            
-
-            if self.current_char == ')':
-                self.next()
-                return Token(TokenType.RPAREN, self.current_char,self.direction)
+                return Token(TokenType.GREATERTHEN, "<",self.direction)
             
             # 单引号或者双引号开头的解析为字符串
             if self.current_char == '\"' or self.current_char == '\'':

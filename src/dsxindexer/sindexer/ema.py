@@ -19,12 +19,13 @@ class EMA(BaseSindexer):
 
     # 公式解析器会调用此方法,这里自定义实现算法，通过公式实现就不用手动写算法了
     def call(self,X,N,*args):
+        XX = self.GET(X)
         alpha = 2/(N+1)
+        last_key = X+"_EMA_"+str(N)
         if self.cursor.index==0 : 
-            ema = X
+            ema = XX
         else:
-            # 这里会存在冲突，因为没办法区分是谁的上一个值
-            last_ema = self.REF("last_ema"+str(N))
-            ema = (1.0-alpha)*last_ema + alpha * X
-        self.save_temp("last_ema"+str(N),ema)
+            last_ema = self.REF(last_key)
+            ema = (1.0-alpha)*last_ema + alpha * XX
+        self.save_temp(last_key,ema)
         return ema

@@ -5,10 +5,11 @@ from dsxindexer.configer import Cursor
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.models.kline_model import KlineModel
 from dsxindexer.parser import Parser
+from dsxindexer.sindexer.SMA import SMA
 from dsxindexer.tokenizer import Lexer
 from dsxindexer.functioner import Functioner
 from dsxindexer.processors.base_processor import BaseProcessor
-from dsxindexer.sindexer.ema import EMA
+from dsxindexer.sindexer.EMA import EMA
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from typing import List
 
@@ -16,9 +17,10 @@ from typing import List
 
 class SindexerProcessor(BaseProcessor):
 
-    # 注册
+    # 内置一些指标解析器
     processors:List[BaseSindexer] = [
-        EMA
+        EMA,
+        SMA,
     ]
 
     def __init__(self,klines:list=None) -> None:
@@ -82,7 +84,7 @@ class SindexerProcessor(BaseProcessor):
         ps = []
         for item in self.processors:
             obj = item(self.klines,self.cursor)
-            Functioner.register(obj)
+            Functioner().register(obj)
             ps.append(obj)
         self.processors = ps
         

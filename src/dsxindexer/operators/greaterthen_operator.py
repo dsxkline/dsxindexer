@@ -5,8 +5,6 @@ from dsxindexer.operators.base_operator import BaseOperator
 class GreaterThenOperator(BaseOperator):
     # 设置处理标识类型
     type_name = TokenType.GREATERTHEN
-    def __init__(self, token: Token,parser,last_result) -> None:
-        super().__init__(token,parser,last_result)
 
     def call(self):
         result = self.last_result

@@ -13,11 +13,12 @@ class Formulas:
         return s % (SHORT,LONG,MID,X,X)
     
     @staticmethod
-    def MACD2(X="CLOSE",SHORT=13,LONG=27,MID=8): 
+    def KDJ(X="CLOSE",N=9,M1=3,M2=3): 
         s = """
-        SHORT:=%s;
-        LONG:=%s;
-        MID:=%s;
-        MACD2:=MACD(%s,SHORT,LONG,MID);
+        N:=%(N)s; M1:=%(M1)s; M2:=%(M2)s;
+        RSV:=(%(X)s-LLV(LOW,N))/(HHV(HIGH,N)-LLV(LOW,N))*100;
+        K:=SMA(RSV,M1,1);
+        D:=SMA(K,M2,1);
+        J:=3*K-2*D;
         """
-        return s % (SHORT,LONG,MID,X)
+        return s % {"N":N,"M1":M1,"M2":M2,"X":X}

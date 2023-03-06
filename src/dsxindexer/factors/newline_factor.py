@@ -6,8 +6,6 @@ from dsxindexer.factors.base_factor import BaseFactor
 class NewlineFactor(BaseFactor):
     # 设置处理标识类型
     type_name = TokenType.NEWLINE
-    def __init__(self, token: Token,parser) -> None:
-        super().__init__(token,parser)
 
     def call(self):
         # 处理换行符
