@@ -1,0 +1,18 @@
+[project]
+name = "dsxquant"
+version = "1.1.0"
+authors = [
+  { name="fangyunsm", email="934476300@qq.com" },
+]
+description = "Dsxquant 是一个基于python语言开发的的量化工具箱，主要特征是其工具属性，专为上层策略应用提供服务。"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dsxkline/dsxquant"
+"Bug Tracker" = "https://github.com/dsxkline/dsxquant/issues"
