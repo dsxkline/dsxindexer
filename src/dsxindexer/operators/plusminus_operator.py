@@ -1,6 +1,4 @@
-from dsxindexer.operators.base_operator import OperatorNotNumberError
-from dsxindexer.configer import TokenType
-from dsxindexer.tokenizer import Token
+from dsxindexer.configer import TokenType,DsxindexerNotNumberError
 from dsxindexer.operators.base_operator import BaseOperator
 
 class PlusMinusOperator(BaseOperator):
@@ -21,8 +19,8 @@ class PlusMinusOperator(BaseOperator):
                     result = result + term
             elif op.type == TokenType.MINUS:
                 if not isinstance(term,int) and not isinstance(term,float):
-                    raise OperatorNotNumberError("相减因子格式错误,非数字 term=%s TOKEN:%s" % (term,self.parser.current_token))
+                    raise DsxindexerNotNumberError("相减因子格式错误,非数字 term=%s TOKEN:%s" % (term,self.parser.current_token))
                 if not isinstance(result,int) and not isinstance(result,float):
-                    raise OperatorNotNumberError("相减因子格式错误,非数字 result=%s TOKEN:%s" % (result,self.parser.current_token))
+                    raise DsxindexerNotNumberError("相减因子格式错误,非数字 result=%s TOKEN:%s" % (result,self.parser.current_token))
                 result = result - term
         return result

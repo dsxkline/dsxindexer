@@ -1,8 +1,8 @@
 import re
 from dsxindexer.processors.base_processor import BaseProcessor
-from dsxindexer.configer import TokenType,ExpreItemDirection
+from dsxindexer.configer import TokenType,ExpreItemDirection,DsxindexerMethodNotFoundError
 from dsxindexer.tokenizer import Token
-from dsxindexer.factors.base_factor import BaseFactor, FactorMethodNotFoundError
+from dsxindexer.factors.base_factor import BaseFactor
 from dsxindexer.configer import RegRolues
 
 class FunctionFactor(BaseFactor):
@@ -50,7 +50,7 @@ class FunctionFactor(BaseFactor):
                         
                     del obj
             if method==None:
-                raise FactorMethodNotFoundError("不支持的函数名: %s，TOKEN:%s" % (func_name,self.token))
+                raise DsxindexerMethodNotFoundError("不支持的函数名: %s，TOKEN:%s" % (func_name,self.token))
             
             # 这里我们约定如果是系统提供的变量名，就传变量名，否则解析值传递
             args = []

@@ -1,9 +1,7 @@
 import re
 import dsxindexer.configer as configer
-from dsxindexer.configer import ExpreItemDirection,TokenType
+from dsxindexer.configer import ExpreItemDirection,TokenType,DsxindexerVariableNameError
 
-class VariableNameError(BaseException):
-    pass
 
 # Token类定义
 class Token:
@@ -80,7 +78,7 @@ class Lexer:
                     return self.get_function(str(result))
                 if self.current_char == ")":break
                 # 如果变量名含有特殊字符，报错
-                raise VariableNameError("变量命名错误，含有特殊字符：%s" % self.current_char) 
+                raise DsxindexerVariableNameError("变量命名错误，含有特殊字符：%s" % self.current_char) 
             self.next()
         return Token(TokenType.VARIABLE, str(result),self.direction)
     

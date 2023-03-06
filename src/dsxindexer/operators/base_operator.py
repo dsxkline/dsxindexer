@@ -2,9 +2,6 @@
 from dsxindexer.tokenizer import Token
 from dsxindexer.configer import TokenType
 
-class OperatorNotNumberError(BaseException):
-    pass
-
 class BaseOperator:
     # 继承子类需要重写此字段
     type_name:TokenType = None

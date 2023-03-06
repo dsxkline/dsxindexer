@@ -3,8 +3,6 @@
 
 ## 使用方法
 ```python
-
-
 class ABCD(BaseSindexer):
     """ABCD
     自定义ABCD指标
@@ -37,16 +35,10 @@ if __name__=="__main__":
         result = sp.execute()
         # 取最后一个
         model = result[-1]
-        print(model.DATE,vars(model.MACD),vars(model.ABCD))
-        pass
-        # print(result)  # Output: 11
-    except VariableNameError as e:
-        print(e)
-        pass
-    except OperatorNotNumberError as e:
-        print(e)
-        pass
+        # 标准值 K:70.5 D:60.62 J:90.26
+        print(model.DATE,vars(model.MACD))
+        print(model.DATE,vars(model.KDJ))
+        print(model.DATE,vars(model.ABCD))
     except Exception as e:
         traceback.print_exc()
-        
 ```

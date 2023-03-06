@@ -1,3 +1,14 @@
+# 数学运算操作不是数值字符错误
+class DsxindexerNotNumberError(Exception):
+    pass
+# 找不到方法名错误
+class DsxindexerMethodNotFoundError(Exception):
+    pass
+# 变量命名错误
+class DsxindexerVariableNameError(Exception):
+    pass
+
+# 一些正则
 class RegRolues:
     # 识别变量名称正则
     VARIABLE = r'^[a-zA-Z_][a-zA-Z0-9_]*$'
