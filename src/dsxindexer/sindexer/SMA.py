@@ -1,3 +1,4 @@
+from dsxindexer.configer import DSX_FIELD_STR
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 
@@ -13,11 +14,14 @@ class SMA(BaseSindexer):
     __typename__ = "SMA"
 
     # 公式解析器会调用此方法,这里自定义实现算法，通过公式实现就不用手动写算法了
-    def call(self,X,N,M,*args):
-        XX = self.GET(X)
+    def call(self,X:DSX_FIELD_STR,N,M):
+        # if not isinstance(X,str):
+        #     XX = X
+        # else:
+        XX = self.parser(X)
+        # XX = self.GET(X)
         if N<=M: return
-        # 这里会存在冲突，因为没办法区分是谁的上一个值
-        last_key = "LY"+str(N)+X
+        last_key = "LY"+str(N)+str(X)
         LY = self.REF(last_key)
         if LY==None: LY = XX
         Y = (M*XX+(N-M)*LY)/N

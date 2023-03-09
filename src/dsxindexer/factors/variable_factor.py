@@ -1,5 +1,5 @@
 from dsxindexer.processors.base_processor import BaseProcessor
-from dsxindexer.configer import TokenType,ExpreItemDirection
+from dsxindexer.configer import TokenType,ExpreItemDirection,logger
 from dsxindexer.tokenizer import Token
 from dsxindexer.factors.base_factor import BaseFactor
 
@@ -16,8 +16,8 @@ class VariableFactor(BaseFactor):
             self.parser.last_avariable = str(self.token.value)
             return str(self.token.value)
         else:
-            # 通过方法名获取方法对象
-            result = self.parser.funcer.get_value(self.parser.namespace,self.token.value)
+            # 通过方法名获取方法对象,从命名空间-函数内部空间获取
+            result = self.parser.funcer.get_value(self.parser.namespace,self.token.value,self.parser.func_name)
             if result==None:
                 # 如果找不到，去函数扩展库找
                 for c in self.parser.funcer.function_exs:
@@ -30,6 +30,6 @@ class VariableFactor(BaseFactor):
                         break
                         
                     del obj
-            print("获取变量值 %s=%s" % (self.token.value,result))
+            logger.debug("获取变量值 %s=%s" % (self.token.value,result))
             return result
         

@@ -32,24 +32,51 @@ class Functioner:
     def SUM(self,a,b):
         return a+b
     
-    def IF(self,a,b,c):
+    def IF(self,a,b,c=None):
+        if c==None:
+            if a:return a
+            else: return b
         if a:return b 
         else : return c
 
-    def set_value(self,group:str,name:str,value:any):
+    def MAX(self,a,b):
+        return max(a,b)
+
+    def MIN(self,a,b):
+        return min(a,b)
+    
+    def ABS(self,a):
+        return abs(a)
+    
+
+    def set_value(self,namespace:str,name:str,value:any,func_name:str=None):
         """保存变量值
 
         Args:
-            group (str): 分支
+            namespace (str): 命名空间
             name (str): 变量名称
             value (any): 变量值
+            func_name (str): 函数内部变量
         """
         g = {}
-        if group:
-            if group in list(self.variables.keys()):
-                g = self.variables.get(group)
+        if namespace:
+            if namespace in list(self.variables.keys()):
+                g = self.variables.get(namespace)
+                if func_name and isinstance(g,dict):
+                    # 会进入函数内部变量场景
+                    if func_name in g.keys():
+                        g = g.get(func_name)
+                    else:
+                        g = {}
+                        self.variables[namespace][func_name] = g
+            elif func_name:
+                self.variables[namespace] = g
+
         g[name] = value
-        self.variables[group] = g
+        if func_name:
+            self.variables[namespace][func_name] = g
+        else:
+            self.variables[namespace] = g
 
     def clear_variables(self):
         """一般一个过程计算完后需要清理
@@ -57,21 +84,32 @@ class Functioner:
         """
         self.variables.clear()
     
-    def get_value(self,group:str,name:str):
+    def get_value(self,namespace:str,name:str,func_name:str=None):
         """获取变量值
 
         Args:
-            group (str): 分支
+            namespace (str): 命名空间
             name (str): 变量名称
+            func_name (str): 函数内部变量
         """
         g = {}
-        if group:
-            if group in list(self.variables.keys()):
-                g = self.variables.get(group)
+        ns = None
+        if namespace:
+            if namespace in list(self.variables.keys()):
+                ns = self.variables.get(namespace)
+                if func_name and isinstance(ns,dict):
+                    if func_name in ns.keys():
+                        g = ns.get(func_name)
+                else:
+                    g = self.variables.get(namespace)
         if g.__len__()<=0 and self.variables.__len__()>0:
             # 找最新一个
             g:dict = list(self.variables.values())[-1]
 
         if name in list(g.keys()):
             return g.get(name)
+        # 有时候函数内部引用外部命名空间的变量
+        if ns:
+            if name in ns.keys():
+                return ns.get(name)
     

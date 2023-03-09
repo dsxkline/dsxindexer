@@ -1,6 +1,9 @@
+from concurrent.futures import ThreadPoolExecutor,wait,as_completed
 import datetime
+import time
 
-from dsxindexer.configer import Cursor
+from dsxindexer.configer import Cursor,logger
+from dsxindexer.sindexer.MA import MA
 
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.models.kline_model import KlineModel
@@ -13,14 +16,13 @@ from dsxindexer.sindexer.EMA import EMA
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from typing import List
 
-
-
 class SindexerProcessor(BaseProcessor):
 
-    # 内置一些指标解析器
+    # 内置一些底层函数
     processors:List[BaseSindexer] = [
         EMA,
         SMA,
+        MA,
     ]
 
     def __init__(self,klines:list=None) -> None:
@@ -67,16 +69,32 @@ class SindexerProcessor(BaseProcessor):
         self.cursor.index += 1
     
     def execute(self):
+        t = time.time()
         # 把指标公式都注册进解析器函数库
         self.regs()
         for item in self.klines:
             # 计算所有注册指标
+            # with ThreadPoolExecutor(max_workers=self.processors.__len__()) as executor:
+            #     futures = []
+            #     for sindexer in self.processors:
+            #         # 得到指标的值
+            #         future = executor.submit(sindexer.execute)
+            #         setattr(future,"__typename__",sindexer.__typename__)
+            #         futures.append(future)
+            #     wait(futures)
+            #     for future in futures:
+            #         result = future.result()
+            #         if result:
+            #             setattr(item,future.__typename__,result)
+            
             for sindexer in self.processors:
                 # 得到指标的值
                 result = sindexer.execute()
                 if result:
                     setattr(item,sindexer.__typename__,result)
             self.next()
+        t = time.time() - t
+        logger.info("编译用时:%s s" % t)
         return self.klines
 
     def regs(self):

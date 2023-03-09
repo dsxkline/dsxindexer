@@ -1,34 +1,63 @@
 import re
 import dsxindexer.configer as configer
-from dsxindexer.configer import ExpreItemDirection,TokenType,DsxindexerVariableNameError
+from dsxindexer.configer import ExpreItemDirection,TokenType,DsxindexerVariableNameError,logger
 
 
 # Token类定义
 class Token:
-    def __init__(self, type, value,direction:ExpreItemDirection=ExpreItemDirection.DEFAULT):
+    def __init__(self, type, value,direction:ExpreItemDirection=ExpreItemDirection.DEFAULT,export:bool=False,location=(0,0),context:str=None):
         self.type = type
         self.value = value
         self.direction:ExpreItemDirection = direction
-        # print(self.__repr__())
+        self.export = export
+        self.location = location
+        self.context = context
+        # logger.debug(self.__repr__())
+    
+    def throw_error(self):
+        """显示当前token解析错误
+        """
+        return """
+        context:%s
+        type:%s
+        value:%s
+        direction:%s
+        export:%s
+        row:%s
+        col:%s
+        """ % (self.context,self.type,self.value,["left","default","right"][self.direction],self.export,self.location[0],self.location[1])
+
 
     def __repr__(self):
-        return 'Token({type}, {value},{direction})'.format(
+        return 'Token({type},{value},{direction},{export},{location})'.format(
             type=self.type,
             value=repr(self.value),
-            direction=repr(self.direction)
+            direction=self.direction,
+            export=self.export,
+            location=self.location,
+
         )
 
 
 # 词法分析器类定义
 # 主要功能是解析字符表达式的每个字符，生成记号TOKEN序列，并提供记号流转
 class Lexer:
-    def __init__(self, text,direction:ExpreItemDirection=ExpreItemDirection.LEFT):
+    def __init__(self, text,direction:ExpreItemDirection=ExpreItemDirection.LEFT,row:int=1):
         self.text = text
+        # 索引
         self.pos = 0
+        # 行号
+        self.row = row
+        # 列号
+        self.col = 1
+        # 当前字符
         self.current_char:str = self.text[self.pos]
         # 目前是在等号的左边还是右边，默认在左边，用来判断是变量名称还是字符串
         # 如果解析函数内部参数，则需要手动传右边
+        direction = (configer.ASSIGN_CHART in self.text or configer.ASSIGN_CHART[0] in self.text) and ExpreItemDirection.LEFT or ExpreItemDirection.RIGHT
         self.direction = direction
+        # 当前行
+        self.current_line:str = self.current_char
 
     # 辅助函数，用于向前移动指针并更新当前字符
     def next(self):
@@ -37,6 +66,14 @@ class Lexer:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+        if self.current_char!=None: self.current_line += self.current_char
+        
+        self.col += 1
+        # 换行符重置
+        if self.current_char=="\n":
+            self.row += 1
+            self.col = 0
+            self.current_line = ""
 
     # 辅助函数，用于跳过空白字符
     def skip_whitespace(self):
@@ -57,13 +94,13 @@ class Lexer:
             else:
                 break
             self.next()
-        return Token(TokenType.INTEGER, int(result),self.direction)
+        return Token(TokenType.INTEGER, int(result),self.direction,location=(self.row,self.col),context=self.current_line)
     
     def floater(self,result):
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.next()
-        return Token(TokenType.INTEGER, float(result),self.direction)
+        return Token(TokenType.INTEGER, float(result),self.direction,location=(self.row,self.col),context=self.current_line)
 
     # 提取变量名
     def variable(self):
@@ -80,7 +117,7 @@ class Lexer:
                 # 如果变量名含有特殊字符，报错
                 raise DsxindexerVariableNameError("变量命名错误，含有特殊字符：%s" % self.current_char) 
             self.next()
-        return Token(TokenType.VARIABLE, str(result),self.direction)
+        return Token(TokenType.VARIABLE, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
     
     def get_function(self,func_name):
         """识别为函数的时候，方向需要指向等号右边，否则无法获取到变量值
@@ -100,7 +137,7 @@ class Lexer:
                     break
             self.next()
             
-        return Token(TokenType.FUNCTION, func_name+str(result),self.direction)
+        return Token(TokenType.FUNCTION, func_name+str(result),self.direction,location=(self.row,self.col),context=self.current_line)
 
     
     # 提取字符串，有可能是变量或者字符串值
@@ -130,18 +167,26 @@ class Lexer:
             result += self.current_char
 
             self.next()
-        return Token(TokenType.LPAREN, str(result),self.direction)
+        return Token(TokenType.LPAREN, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
     
     def assign(self):
-        result = ''
-        # 处理赋值符号
-        while self.current_char is not None and self.current_char!=configer.EXPR_END_CHART:
-            # 先跳过赋值符号
+        export = False
+        # 公式中可能有些只有冒号，表示赋值和输出的意思，有冒号和等号就是单单赋值
+        if self.current_char in configer.ASSIGN_CHART:
             for i in range(len(configer.ASSIGN_CHART)-1):
                 self.next()
+        else:
+            # 单冒号模式为赋值输出模式
+            export = True
+        result = ''
+        # 处理赋值符号
+        while self.current_char is not None and self.current_char!="\n":
             result += self.current_char
+            if self.current_char==configer.EXPR_END_CHART:break
+            self.next()
             
-        return Token(TokenType.EQUAL, result,ExpreItemDirection.DEFAULT)
+        # 赋值符号右边所有语句 
+        return Token(TokenType.EQUAL, result,ExpreItemDirection.DEFAULT,export,location=(self.row,self.col),context=self.current_line)
 
     # 核心函数，用于将输入的字符序列分割为一个个Token
     def get_next_token(self):
@@ -151,7 +196,7 @@ class Lexer:
                 self.next()
                 # 进入等号左边
                 self.direction = ExpreItemDirection.LEFT
-                return Token(TokenType.NEWLINE, configer.EXPR_END_CHART,self.direction)
+                return Token(TokenType.NEWLINE, configer.EXPR_END_CHART,self.direction,location=(self.row,self.col),context=self.current_line)
             # 赋值符号
             if self.current_char in configer.ASSIGN_CHART:
                 self.next()
@@ -176,19 +221,19 @@ class Lexer:
             if self.current_char == '+':
                 # 移动字符
                 self.next()
-                return Token(TokenType.PLUS, "+",self.direction)
+                return Token(TokenType.PLUS, "+",self.direction,location=(self.row,self.col),context=self.current_line)
 
             if self.current_char == '-':
                 self.next()
-                return Token(TokenType.MINUS, "-",self.direction)
+                return Token(TokenType.MINUS, "-",self.direction,location=(self.row,self.col),context=self.current_line)
 
             if self.current_char == '*':
                 self.next()
-                return Token(TokenType.MUL, "*",self.direction)
+                return Token(TokenType.MUL, "*",self.direction,location=(self.row,self.col),context=self.current_line)
 
             if self.current_char == '/':
                 self.next()
-                return Token(TokenType.DIV, "/",self.direction)
+                return Token(TokenType.DIV, "/",self.direction,location=(self.row,self.col),context=self.current_line)
 
             if self.current_char == '(':
                 self.next()
@@ -196,15 +241,15 @@ class Lexer:
             
             if self.current_char == '>':
                 self.next()
-                return Token(TokenType.GREATERTHEN, ">",self.direction)
+                return Token(TokenType.GREATERTHEN, ">",self.direction,location=(self.row,self.col),context=self.current_line)
             
             if self.current_char == '<':
                 self.next()
-                return Token(TokenType.GREATERTHEN, "<",self.direction)
+                return Token(TokenType.GREATERTHEN, "<",self.direction,location=(self.row,self.col),context=self.current_line)
             
             # 单引号或者双引号开头的解析为字符串
             if self.current_char == '\"' or self.current_char == '\'':
-                return Token(TokenType.STRING, self.string(),self.direction)
+                return Token(TokenType.STRING, self.string(),self.direction,location=(self.row,self.col),context=self.current_line)
             
             # 字母开头数字下划线组合的变量
             if re.match(configer.RegRolues.VARIABLE, self.current_char):
@@ -213,4 +258,4 @@ class Lexer:
 
             raise ValueError('Invalid character: ' + self.current_char,self.direction)
 
-        return Token(TokenType.EOF, None)
+        return Token(TokenType.EOF, None,self.direction,location=(self.row,self.col),context=self.current_line)

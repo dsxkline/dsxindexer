@@ -1,11 +1,33 @@
+import logging,logging.config
+DEBUG = True
+if DEBUG:
+    LOGLEVEL = logging.DEBUG
+else:
+    LOGLEVEL = logging.INFO
+logger = logging.getLogger("dsxindexer")  # 生成一个log实例
+handle = logging.StreamHandler()
+formater = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s][%(filename)s:%(lineno)d] %(message)s')
+handle.setFormatter(formater)
+logger.addHandler(handle)
+logger.setLevel(LOGLEVEL)
+
 # 数学运算操作不是数值字符错误
 class DsxindexerNotNumberError(Exception):
     pass
 # 找不到方法名错误
 class DsxindexerMethodNotFoundError(Exception):
     pass
+# 函数参数数量不一致
+class DsxindexerMethodParamMisError(Exception):
+    pass
 # 变量命名错误
 class DsxindexerVariableNameError(Exception):
+    pass
+class SindexerVarNotFoundError(Exception):
+    pass
+
+# 声明一个数据类型，传字段名称
+class DSX_FIELD_STR:
     pass
 
 # 一些正则

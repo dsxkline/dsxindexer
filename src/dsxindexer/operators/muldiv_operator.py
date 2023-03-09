@@ -1,4 +1,4 @@
-from dsxindexer.configer import TokenType,DsxindexerNotNumberError
+from dsxindexer.configer import TokenType,DsxindexerNotNumberError,logger
 from dsxindexer.operators.base_operator import BaseOperator
 
 class MulDivOperator(BaseOperator):
@@ -13,14 +13,17 @@ class MulDivOperator(BaseOperator):
             # 解析乘号的右边表达式
             factor = self.parser.factor()
             if not isinstance(factor,int) and not isinstance(factor,float):
-                raise DsxindexerNotNumberError("乘因子格式错误,非数字 %s=%s" % (op,factor))
+                raise DsxindexerNotNumberError("乘除因子格式错误,非数字 %s" % self.parser.current_token.throw_error())
             if not isinstance(result,int) and not isinstance(result,float):
-                raise DsxindexerNotNumberError("乘因子格式错误,非数字 %s=%s" % (op,result))
+                raise DsxindexerNotNumberError("乘除因子格式错误,非数字 %s" % (op.throw_error()))
             if op.type==TokenType.MUL:
-                result = result * factor
-                print("处理相乘：%s * %s = %s"%(self.last_result,factor,result))
+                rs = result * factor
+                logger.debug("处理相乘：%s * %s = %s"%(result,factor,rs))
+                result = rs
             if op.type==TokenType.DIV:
-                result = result / factor
-                print("处理相除：%s / %s = %s"%(self.last_result,factor,result))
+                if factor!=0:rs = result / factor
+                else:rs = 0
+                logger.debug("处理相除：%s / %s = %s"%(result,factor,rs))
+                result = rs
             
         return result

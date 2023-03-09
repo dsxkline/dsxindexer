@@ -1,3 +1,4 @@
+from dsxindexer.configer import DSX_FIELD_STR
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.base_sindexer import BaseSindexer,SindexerResult
 
@@ -11,6 +12,12 @@ class MACD(BaseSindexer):
         return Formulas.MACD()
     
     # 公式解析器会调用此方法
-    def call(self,X,SHORT=12,LONG=26,MID=9,*args):
+    def call(self,X:DSX_FIELD_STR,SHORT=12,LONG=26,MID=9):
         f = Formulas.MACD(X,SHORT,LONG,MID)
-        if f: return self.parser(f)
+        if f: return self.parser(f,self.__typename__)
+        # DIF=self.EMA(X,SHORT)-self.EMA(X,LONG)
+        # DEA=self.EMA('DIF',MID)
+        # MACD=(DIF-DEA)*2
+
+    def compiled(self):
+        return super().compiled()
