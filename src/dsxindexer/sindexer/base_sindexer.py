@@ -1,5 +1,6 @@
 
 import hashlib
+import math
 import re
 from typing import List
 
@@ -81,7 +82,9 @@ class BaseSindexer:
                 if func_name != None:
                     if func_name in obj.keys():
                         obj = obj.get(func_name)
-                        
+            if not isinstance(obj,dict):
+                return obj
+
             if name in list(obj.keys()):
                     return obj.get(name)  
                 
@@ -129,7 +132,8 @@ class BaseSindexer:
                                     setattr(result,k,v)
                             continue
                         # 单个变量导出直接导出数值格式
-                        if self.__exportvars__.__len__()==1: return val
+                        if self.__exportvars__.__len__()==1: 
+                            return val
                         setattr(result,item,val)
         else:
             # 如果没有设置导出变量，默认取最后一个变量的值
@@ -147,7 +151,7 @@ class BaseSindexer:
                 values = parser.funcer.variables.get(namespace)
             if isinstance(namespace,dict):
                 values = namespace
-            if values:
+            if values!=None:
                 for (k,v) in values.items():
                     self.save_temp(k,v,parser.func_name)
 
@@ -184,18 +188,18 @@ class BaseSindexer:
             if hasattr(self.klines[index],X):
                 return getattr(self.klines[index],X)
         
-        # 去函数库命名空间找
-        funcer = Functioner()
-        result = funcer.get_value(self.namespace,X,self.__typename__)
-        if result!=None:
-            return result
-        # 去注册函数库找
-        for item in funcer.function_exs:
-            if hasattr(item,X):
-                return getattr(item,X)
-            
         rs = self.get_temp(X,index,self.__typename__)
         if rs!=None:return rs
+        if index==self.cursor.index:
+            # 去函数库命名空间找
+            funcer = Functioner()
+            result = funcer.get_value(self.namespace,X,self.__typename__)
+            if result!=None:
+                return result
+            # 去注册函数库找
+            for item in funcer.function_exs:
+                if hasattr(item,X):
+                    return getattr(item,X)
             
         raise SindexerVarNotFoundError("找不到变量值 %s" % (X))
 
@@ -231,7 +235,9 @@ class BaseSindexer:
             if hasattr(item,X):
                 return getattr(item,X)
             # 找不到就拿临时数据
-            return self.get_temp(X,i,self.__typename__)
+            result = self.get_temp(X,i,self.__typename__)
+            if result==None:result=0
+            return result
 
     def LLV(self,X:DSX_FIELD_STR,N:int=1):
         """周期内最小值
@@ -267,29 +273,73 @@ class BaseSindexer:
                 break
         return result
     
-    def AVEDEV(self,X:DSX_FIELD_STR,N:int=1):
-        """计算数据与数据集均值之间的偏差大小的平均值。
+    def AVG(self,X:DSX_FIELD_STR,N:int=1):
+        """返回N周期平均值
 
+        Args:
+            X (DSX_FIELD_STR): _description_
+            N (int, optional): _description_. Defaults to 1.
+        """
+        if self.cursor.index<N:return 0
+        result = 0
+        index = self.cursor.index
+        j = 0
+        for i in range(N):
+            index = self.cursor.index - i
+            if index>=0:
+                result += self.GET(X,index)
+                j += 1
+            else:
+                break
+        return result / j
+    
+    def AVEDEV(self,X:DSX_FIELD_STR,N:int=1):
+        """返回X在N周期内的平均绝对偏差。
+            AVG = (C+REF(C,1)+REF(C,2))/3
+            AVEDEV = (ABS(C-AVG) + ABS(REF(C,1)-AVG) + ABS(REF(C,2)-AVG))/3;
         Args:
             X (DSX_FIELD_STR): 变量名或表达式
             N (int, optional): _description_. Defaults to 1.
         """
-        XX = self.GET(X)
-        # 统计数据集均值
-        result = XX
-        index = self.cursor.index
+        if self.cursor.index<N:return 0
+        # N周期均值
+        avg = self.AVG(X,N)
+        j = 0
+        result = 0
         for i in range(N):
             index = self.cursor.index - i
             if index>=0:
-                # 计算数据集总和
-                result += self.GET(X,index)
+                # 计算数据与平均值之间方差的绝对值的总和
+                result += abs(self.GET(X,index)-avg)
+                j +=1
             else:
                 break
-        # 计算与数据集均值
-        avgs = result / N
-        # 计算数据与数据集均值之间的偏差
-        result = XX - avgs
-        return result
+            
+        return result / j
+    
+    def STD(self,X:DSX_FIELD_STR,N:int=1):
+        """计算N周期X的标准差
+        Args:
+            X (DSX_FIELD_STR): 变量名或表达式
+            N (int, optional): _description_. Defaults to 1.
+        """
+        if self.cursor.index<N:return 0
+        # N周期均值
+        avg = self.AVG(X,N)
+        j = 0
+        result = 0
+        for i in range(N):
+            index = self.cursor.index - i
+            if index>=0:
+                # 每个样本数据 减去样本全部数据的平均值 的平方相加
+                minus = self.GET(X,index)-avg
+                result += minus * minus
+                j +=1
+            else:
+                break
+        # 标准偏差
+        s = math.sqrt(result / (j - 1))
+        return s
 
 
         

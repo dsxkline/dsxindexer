@@ -1,5 +1,6 @@
 import re
-import dsxindexer.configer as configer
+import threading
+from dsxindexer.configer import logger
 
 def singleton(cls):
     instances = {}
@@ -9,10 +10,17 @@ def singleton(cls):
         return instances[cls]
     return get_instance
 
+def synchronized(func):
+    func.__lock__ = threading.Lock()
+
+    def wrapper(*args, **kwargs):
+        with func.__lock__:
+            return func(*args, **kwargs)
+
+    return wrapper
+
 @singleton
 class Functioner:
-    # 注册扩展类
-
     def __init__(self) -> None:
         self.function_exs = []
         self.variables = {}
@@ -49,6 +57,7 @@ class Functioner:
         return abs(a)
     
 
+    @synchronized
     def set_value(self,namespace:str,name:str,value:any,func_name:str=None):
         """保存变量值
 
@@ -83,7 +92,8 @@ class Functioner:
         一个表达式为一个过程，整个表达式计算完即清理
         """
         self.variables.clear()
-    
+
+    @synchronized
     def get_value(self,namespace:str,name:str,func_name:str=None):
         """获取变量值
 
@@ -102,6 +112,8 @@ class Functioner:
                         g = ns.get(func_name)
                 else:
                     g = self.variables.get(namespace)
+        if not isinstance(g,dict):
+            return g
         if g.__len__()<=0 and self.variables.__len__()>0:
             # 找最新一个
             g:dict = list(self.variables.values())[-1]

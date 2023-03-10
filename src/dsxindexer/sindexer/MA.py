@@ -13,11 +13,13 @@ class MA(BaseSindexer):
     # 公式解析器会调用此方法,这里自定义实现算法，通过公式实现就不用手动写算法了
     def call(self,X:DSX_FIELD_STR="CLOSE",N=5):
         amount = 0
+        if self.cursor.index - N<0:return 0
         start = max(0,self.cursor.index - N)+1
         end = self.cursor.index+1
         M = 0
         for i in range(start,end):
             amount += self.GET(X,i)
             M += 1
-        ma = M==0 and self.parser(X) or amount / M
+        if M==0: ma = self.GET(X)
+        else: ma = amount / M
         return ma

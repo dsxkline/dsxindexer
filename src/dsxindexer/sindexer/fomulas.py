@@ -40,9 +40,9 @@ class Formulas:
     def CCI(N=14):
         s = """
         TYP:=(HIGH+LOW+CLOSE)/3;
-        CCI:(TYP-MA(TYP,%s))*1000/(15*AVEDEV(TYP,%s));
+        CCI%s:(TYP-MA(TYP,%s))*1000/(15*AVEDEV(TYP,%s));
         """
-        return s % (N,N)
+        return s % (N,N,N)
     
     @staticmethod
     def WR(N=10,N1=6):
@@ -53,5 +53,33 @@ class Formulas:
         WR%s:100*(HHV(HIGH,N1)-CLOSE)/(HHV(HIGH,N1)-LLV(LOW,N1));
         """ 
         return s % (N,N1,N,N1)
+    
+    def DMI(N=14,M=6):
+        s = """
+        N:=%s;
+        M:=%s;
+        MTR:=SUM(MAX(MAX(HIGH-LOW,ABS(HIGH-REF(CLOSE,1))),ABS(REF(CLOSE,1)-LOW)),N);
+        HD :=HIGH-REF(HIGH,1);
+        LD :=REF(LOW,1)-LOW;
+        DMP:=SUM(IF(HD>0&&HD>LD,HD,0),N);
+        DMM:=SUM(IF(LD>0&&LD>HD,LD,0),N);
+        PDI: DMP*100/MTR;
+        MDI: DMM*100/MTR;
+        ADX: MA(ABS(MDI-PDI)/(MDI+PDI)*100,M);
+        ADXR:(ADX+REF(ADX,M))/2;
+        """
+        return s % (N,M)
+    
+    def BOLL(X="CLOSE",M=20,K=2):
+        s = """
+        M:=%s;
+        K:=%s;
+        MB:=MA(%s,M);
+        STD:=STD(%s,M);
+        MID:MB;
+        UP:MB+K*STD;
+        LOW:MB-K*STD;
+        """
+        return s % (M,K,X,X)
 
 

@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import inspect
 import re
@@ -54,6 +55,15 @@ class FunctionFactor(BaseFactor):
                         obj = c
                         # 检查对象是否已实例化
                         if type(obj)==type: obj = c()
+                        # # 赋值重新创建
+                        # obj_type = type(obj)
+                        # # 继承传参
+                        # parameters = list(inspect.signature(obj.__init__).parameters.values())
+                        # args = [obj.__dict__[arg.name] for arg in parameters]
+                        # obj2 = obj_type(*args)
+                        # obj2 = obj_type.__new__(obj_type)
+                        # obj2.__dict__.update(obj.__dict__)
+                        # obj = obj2
                         # 否则直接查找类的方法
                         if type(obj).__name__ == func_name:
                             # 命名空间继承，命名空间继承后，变量也会继承
@@ -66,7 +76,6 @@ class FunctionFactor(BaseFactor):
                             if callable(mt):
                                 method = mt
                                 break
-                            
                         del obj
             if method==None:
                 raise DsxindexerMethodNotFoundError("不支持的函数名: %s，TOKEN:%s" % (func_name,self.token.throw_error()))

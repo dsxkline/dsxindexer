@@ -191,6 +191,25 @@ class Lexer:
     # 核心函数，用于将输入的字符序列分割为一个个Token
     def get_next_token(self):
         while self.current_char is not None:
+            # 注释符
+            if self.current_char == configer.ANNOTATION_CHART[0]:
+                result = ''
+                while(self.current_char!=None):
+                    result += self.current_char
+                    if self.current_char==configer.ANNOTATION_CHART[1]: break
+                    self.next()
+                self.next()
+                continue
+            # 注释符2
+            if self.current_char == configer.ANNOTATION_CHART_OTHER[0]:
+                result = ''
+                while(self.current_char!=None):
+                    result += self.current_char
+                    if self.current_char==configer.ANNOTATION_CHART_OTHER[1]: break
+                    self.next()
+                self.next()
+                continue
+            
             # 换行符
             if self.current_char == configer.EXPR_END_CHART:
                 self.next()
@@ -234,6 +253,10 @@ class Lexer:
             if self.current_char == '/':
                 self.next()
                 return Token(TokenType.DIV, "/",self.direction,location=(self.row,self.col),context=self.current_line)
+            
+            if self.current_char == '%':
+                self.next()
+                return Token(TokenType.PERCENT, "%",self.direction,location=(self.row,self.col),context=self.current_line)
 
             if self.current_char == '(':
                 self.next()
@@ -241,12 +264,37 @@ class Lexer:
             
             if self.current_char == '>':
                 self.next()
+                if self.current_char == '=':
+                    self.next()
+                    return Token(TokenType.GREATERTHEN_AND, ">=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.GREATERTHEN, ">",self.direction,location=(self.row,self.col),context=self.current_line)
             
             if self.current_char == '<':
                 self.next()
-                return Token(TokenType.GREATERTHEN, "<",self.direction,location=(self.row,self.col),context=self.current_line)
+                if self.current_char == '=':
+                    self.next()
+                    return Token(TokenType.LESSTHEN_AND, "<=",self.direction,location=(self.row,self.col),context=self.current_line)
+                return Token(TokenType.LESSTHEN, "<",self.direction,location=(self.row,self.col),context=self.current_line)
             
+            if self.current_char == '&':
+                self.next()
+                if self.current_char == '&':
+                    self.next()
+                    return Token(TokenType.AND, "&&",self.direction,location=(self.row,self.col),context=self.current_line)
+                
+            if self.current_char == '!':
+                self.next()
+                if self.current_char == '=':
+                    self.next()
+                    return Token(TokenType.NOTEQUAL, "!=",self.direction,location=(self.row,self.col),context=self.current_line)
+                return Token(TokenType.NOT, "!",self.direction,location=(self.row,self.col),context=self.current_line)
+                
+            if self.current_char == '|':
+                self.next()
+                if self.current_char == '|':
+                    self.next()
+                    return Token(TokenType.OR, "||",self.direction,location=(self.row,self.col),context=self.current_line)
+                
             # 单引号或者双引号开头的解析为字符串
             if self.current_char == '\"' or self.current_char == '\'':
                 return Token(TokenType.STRING, self.string(),self.direction,location=(self.row,self.col),context=self.current_line)

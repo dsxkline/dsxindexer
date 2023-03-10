@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor,wait,as_completed
 import datetime
 import time
+import types
 
 from dsxindexer.configer import Cursor,logger
 from dsxindexer.sindexer.MA import MA
@@ -19,10 +20,14 @@ from typing import List
 class SindexerProcessor(BaseProcessor):
 
     # 内置一些底层函数
-    processors:List[BaseSindexer] = [
+    __processors:List[BaseProcessor]=[
         EMA,
         SMA,
         MA,
+    ]
+    # 自定义注册指标函数
+    processors:List[BaseSindexer] = [
+        
     ]
 
     def __init__(self,klines:list=None) -> None:
@@ -72,36 +77,43 @@ class SindexerProcessor(BaseProcessor):
         t = time.time()
         # 把指标公式都注册进解析器函数库
         self.regs()
+        # executor = ThreadPoolExecutor(max_workers=self.processors.__len__())
         for item in self.klines:
             # 计算所有注册指标
-            # with ThreadPoolExecutor(max_workers=self.processors.__len__()) as executor:
-            #     futures = []
-            #     for sindexer in self.processors:
-            #         # 得到指标的值
-            #         future = executor.submit(sindexer.execute)
-            #         setattr(future,"__typename__",sindexer.__typename__)
-            #         futures.append(future)
-            #     wait(futures)
-            #     for future in futures:
-            #         result = future.result()
-            #         if result:
-            #             setattr(item,future.__typename__,result)
+            # futures = []
+            # for sindexer in self.processors:
+            #     # 得到指标的值
+            #     future = executor.submit(sindexer.execute)
+            #     setattr(future,"__typename__",sindexer.__typename__)
+            #     futures.append(future)
+            # # wait(futures)
+            # for future in futures:
+            #     result = future.result()
+            #     if result:
+            #         setattr(item,future.__typename__,result)
             
             for sindexer in self.processors:
                 # 得到指标的值
                 result = sindexer.execute()
-                if result:
+                if result!=None:
                     setattr(item,sindexer.__typename__,result)
             self.next()
+        # executor.shutdown()
         t = time.time() - t
         logger.info("编译用时:%s s" % t)
         return self.klines
 
     def regs(self):
+        # 给自定义指标注册基础函数
+        for cls in self.__processors:
+            obj:BaseSindexer = cls(self.klines,self.cursor)
+            Functioner().register(obj)
+            # setattr(obj,cls.__typename__,types.MethodType(cls.call, obj))
+            
         # 把指标公式器都注册并实例化
         ps = []
         for item in self.processors:
-            obj = item(self.klines,self.cursor)
+            obj:BaseSindexer = item(self.klines,self.cursor)
             Functioner().register(obj)
             ps.append(obj)
         self.processors = ps

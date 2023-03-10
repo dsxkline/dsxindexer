@@ -18,7 +18,7 @@ class SMA(BaseSindexer):
         # if not isinstance(X,str):
         #     XX = X
         # else:
-        XX = self.parser(X)
+        XX = self.GET(X)
         # XX = self.GET(X)
         if N<=M: return
         last_key = "LY"+str(N)+str(X)

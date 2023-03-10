@@ -3,11 +3,11 @@ from dsxindexer.operators.base_operator import BaseOperator
 
 class MulDivOperator(BaseOperator):
     # 设置处理标识类型
-    type_name = (TokenType.MUL,TokenType.DIV)
+    type_name = (TokenType.MUL,TokenType.DIV,TokenType.PERCENT)
 
     def call(self):
         result = self.last_result
-        while self.parser.current_token.type in (TokenType.MUL,TokenType.DIV):
+        while self.parser.current_token.type in self.type_name:
             op = self.parser.current_token
             self.parser.eat(op.type)
             # 解析乘号的右边表达式
@@ -24,6 +24,11 @@ class MulDivOperator(BaseOperator):
                 if factor!=0:rs = result / factor
                 else:rs = 0
                 logger.debug("处理相除：%s / %s = %s"%(result,factor,rs))
+                result = rs
+            if op.type==TokenType.PERCENT:
+                if factor!=0:rs = result % factor
+                else:rs = 0
+                logger.debug("处理取余：%s / %s = %s"%(result,factor,rs))
                 result = rs
             
         return result

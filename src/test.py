@@ -1,6 +1,8 @@
 import traceback
 from dsxindexer.configer import logger,logging
+from dsxindexer.sindexer.BOLL import BOLL
 from dsxindexer.sindexer.CCI import CCI
+from dsxindexer.sindexer.DMI import DMI
 from dsxindexer.sindexer.MACD import MACD
 from dsxindexer.sindexer.KDJ import KDJ
 from dsxindexer.processors.sindexer_processor import SindexerProcessor
@@ -23,10 +25,15 @@ class ABCD(BaseSindexer):
 
     def formula(self):
         return """
-        A:CLOSE;
-        B:HIGH;
+        # 这里是注释
+        A:CLOSE;#收盘价
+        B:HIGH;#最高价
         C:A*B;
+        {这里是注释符了}
         D:1000+(A+B*90/(60*C))/90*A-100000/C*100;
+        买线:1000;
+        卖线:456 * 买线;
+        哈哈:!90;
         """
 
 class MAn(BaseSindexer):
@@ -61,6 +68,8 @@ if __name__=="__main__":
         sp.register(RSI)
         sp.register(CCI)
         sp.register(WR)
+        sp.register(DMI)
+        sp.register(BOLL)
         sp.register(MAn)
         # 工厂方式注册
         MA10 = SindexerFactory.create("MA10","MA10:MA(CLOSE,10);")
@@ -80,6 +89,8 @@ if __name__=="__main__":
         logger.info(model.DATE+" %s" % vars(model.RSI))
         logger.info(model.DATE+" %s" % model.CCI)
         logger.info(model.DATE+" %s" % vars(model.WR))
+        logger.info(model.DATE+" %s" % vars(model.DMI))
+        logger.info(model.DATE+" %s" % vars(model.BOLL))
         logger.info(model.DATE+" %s" % vars(model.MAn))
         logger.info(model.DATE+" %s" % model.MA10)
         logger.info(model.DATE+" %s" % model.MA30)
@@ -87,4 +98,4 @@ if __name__=="__main__":
  
     except Exception as e:
         logger.error(e)
-        traceback.print_exc()
+        # traceback.print_exc()

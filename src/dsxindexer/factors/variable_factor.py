@@ -25,9 +25,16 @@ class VariableFactor(BaseFactor):
                     # 检查对象是否已实例化
                     if type(obj)==type: obj = c() 
                     # 否则直接查找类的方法
-                    if hasattr(obj,self.token.value):
-                        result = getattr(obj,self.token.value)
-                        break
+                    # if hasattr(obj,self.token.value):
+                    #     result = getattr(obj,self.token.value)
+                    #     break
+                    # 否则直接查找类的方法
+                    if hasattr(obj,"namespace"):
+                        if getattr(obj,"namespace") == self.parser.namespace:
+                            # 命名空间继承，命名空间继承后，变量也会继承
+                            if hasattr(obj,self.token.value):
+                                result = getattr(obj, self.token.value)
+                                break
                         
                     del obj
             logger.debug("获取变量值 %s=%s" % (self.token.value,result))

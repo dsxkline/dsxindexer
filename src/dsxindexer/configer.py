@@ -33,8 +33,8 @@ class DSX_FIELD_STR:
 # 一些正则
 class RegRolues:
     # 识别变量名称正则
-    VARIABLE = r'^[a-zA-Z_][a-zA-Z0-9_]*$'
-    VARIABLE_NAME = r'^[a-zA-Z0-9_]*$'
+    VARIABLE = r'^[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_]*$'
+    VARIABLE_NAME = r'^[a-zA-Z0-9_\u4e00-\u9fa5]*$'
     OPERATIONS = r'^(\+|\-|\*|\/|\%|\=\=|\!\=|\>|\<|\>\=|\<\=|\&\&|\|\|)$'
 
 # Token 类型定义，就是定义表达式字符串每个字符是什么类型
@@ -59,6 +59,8 @@ class TokenType:
     RPAREN = 'RPAREN'
     # 等于号
     EQUAL = 'EQUAL'
+    # 不等于号
+    NOTEQUAL = 'NOTEQUAL'
     # 等号左边为变量
     VARIABLE = 'VARIABLE'
     # 换行符
@@ -69,6 +71,18 @@ class TokenType:
     GREATERTHEN = "GREATERTHEN"
     # 小于
     LESSTHEN = "LESSTHEN"
+    # 大于
+    GREATERTHEN_AND= "GREATERTHEN_AND"
+    # 小于
+    LESSTHEN_AND = "LESSTHEN_AND"
+    # and
+    AND = "AND"
+    # or
+    OR = "OR"
+    # not
+    NOT = "NOT"
+    # %
+    PERCENT = "PERCENT"
     # EOF
     EOF = 'EOF'
 
@@ -86,3 +100,6 @@ class Cursor:
 EXPR_END_CHART = ";"
 # 赋值符号
 ASSIGN_CHART = ":="
+# 注释符 开始和结束标签
+ANNOTATION_CHART = ("#","\n")
+ANNOTATION_CHART_OTHER = ("{","}")

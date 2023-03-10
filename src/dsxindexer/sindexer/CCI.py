@@ -20,8 +20,7 @@ class CCI(BaseSindexer):
     平均绝对偏差为统计函数
     """
     __typename__ = "CCI"
-    # __exportvars__ = ("RSI6","RSI12","RSI24")
-
+    
     def formula(self):
         return Formulas.CCI()
     

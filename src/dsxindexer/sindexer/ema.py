@@ -25,7 +25,7 @@ class EMA(BaseSindexer):
     # 公式解析器会调用此方法,这里自定义实现算法，通过公式实现就不用手动写算法了
     def call(self,X:DSX_FIELD_STR,N):
         # XX = self.GET(X)
-        XX = self.parser(X)
+        XX = self.GET(X)
         alpha = 2/(N+1)
         last_key = str(X)+"_EMA_"+str(N)
         if self.cursor.index==0 : 
