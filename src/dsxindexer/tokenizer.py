@@ -180,13 +180,13 @@ class Lexer:
             export = True
         result = ''
         # 处理赋值符号
-        while self.current_char is not None and self.current_char!="\n":
+        while self.current_char is not None:
             result += self.current_char
             if self.current_char==configer.EXPR_END_CHART:break
             self.next()
             
         # 赋值符号右边所有语句 
-        return Token(TokenType.EQUAL, result,ExpreItemDirection.DEFAULT,export,location=(self.row,self.col),context=self.current_line)
+        return Token(TokenType.ASSIGN, result,ExpreItemDirection.DEFAULT,export,location=(self.row,self.col),context=self.current_line)
 
     # 核心函数，用于将输入的字符序列分割为一个个Token
     def get_next_token(self):
@@ -216,6 +216,12 @@ class Lexer:
                 # 进入等号左边
                 self.direction = ExpreItemDirection.LEFT
                 return Token(TokenType.NEWLINE, configer.EXPR_END_CHART,self.direction,location=(self.row,self.col),context=self.current_line)
+
+            # 处理等于号必须在赋值符号前，防止冲突
+            if self.current_char == '=':
+                self.next()
+                return Token(TokenType.EQUAL, "=",self.direction,location=(self.row,self.col),context=self.current_line)
+            
             # 赋值符号
             if self.current_char in configer.ASSIGN_CHART:
                 self.next()
@@ -288,6 +294,8 @@ class Lexer:
                     self.next()
                     return Token(TokenType.NOTEQUAL, "!=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.NOT, "!",self.direction,location=(self.row,self.col),context=self.current_line)
+            
+            
                 
             if self.current_char == '|':
                 self.next()

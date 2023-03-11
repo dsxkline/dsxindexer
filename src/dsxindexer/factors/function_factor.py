@@ -26,57 +26,47 @@ class FunctionFactor(BaseFactor):
         if funcs:
             func_name = funcs[0]
             func_args = funcs[1]
-            # 函数库寻找可调用方法
-            methods = [method_name for method_name in dir(self.parser.funcer) if callable(getattr(self.parser.funcer, method_name)) and not method_name.startswith('__')]
             # 通过方法名获取方法对象
             method = None
-            
-            if func_name in methods:
-                method = getattr(self.parser.funcer,func_name)
-            # 如果找不到，去函数扩展库找
-            else:
-                # 应该优先从命名空间找
-                for c in self.parser.funcer.function_exs:
-                    obj = c
-                    # 检查对象是否已实例化
-                    if type(obj)==type: obj = c()
-                    # 否则直接查找类的方法
-                    if hasattr(obj,"namespace"):
-                        if getattr(obj,"namespace") == self.parser.namespace:
-                            # 命名空间继承，命名空间继承后，变量也会继承
-                            if hasattr(obj,func_name):
-                                mt = getattr(obj, func_name)
-                                if callable(mt):
-                                    method = mt
-                                    break
-                    del obj
-                if not method:
-                    for c in self.parser.funcer.function_exs:
-                        obj = c
-                        # 检查对象是否已实例化
-                        if type(obj)==type: obj = c()
-                        # # 赋值重新创建
-                        # obj_type = type(obj)
-                        # # 继承传参
-                        # parameters = list(inspect.signature(obj.__init__).parameters.values())
-                        # args = [obj.__dict__[arg.name] for arg in parameters]
-                        # obj2 = obj_type(*args)
-                        # obj2 = obj_type.__new__(obj_type)
-                        # obj2.__dict__.update(obj.__dict__)
-                        # obj = obj2
-                        # 否则直接查找类的方法
-                        if type(obj).__name__ == func_name:
-                            # 命名空间继承，命名空间继承后，变量也会继承
-                            setattr(obj,"namespace",self.parser.namespace)
-                            method = getattr(obj,"call")
-                            break
-                        # 或者直接查找
+            # 应该优先从命名空间找
+            for c in self.parser.funcer.function_exs:
+                obj = c
+                # 检查对象是否已实例化
+                if type(obj)==type: obj = c()
+                # 否则直接查找类的方法
+                if hasattr(obj,"namespace"):
+                    if getattr(obj,"namespace") == self.parser.namespace:
+                        # 命名空间继承，命名空间继承后，变量也会继承
                         if hasattr(obj,func_name):
                             mt = getattr(obj, func_name)
                             if callable(mt):
                                 method = mt
                                 break
-                        del obj
+                del obj
+            if not method:
+                # 在自己命名空间类中都找不到方法，意味着方法可能在其他类中，例如自定义的指标MACD，可能在MACD类中，那就要去MACD类去查找
+                for c in self.parser.funcer.function_exs:
+                    obj = c
+                    # 检查对象是否已实例化
+                    if type(obj)==type: obj = c()
+                    # 查找类的方法，这里意思是调用其他指标类实例对象
+                    if type(obj).__name__ == func_name:
+                        # 命名空间继承，命名空间继承后，变量也会继承
+                        setattr(obj,"namespace",self.parser.namespace)
+                        method = getattr(obj,"call")
+                        break
+                    # 或者直接查找
+                    if hasattr(obj,func_name):
+                        mt = getattr(obj, func_name)
+                        if callable(mt):
+                            method = mt
+                            break
+                    del obj
+            if method==None:
+                # 函数库寻找可调用方法
+                methods = [method_name for method_name in dir(self.parser.funcer) if callable(getattr(self.parser.funcer, method_name)) and not method_name.startswith('__')]
+                if func_name in methods:
+                    method = getattr(self.parser.funcer,func_name)
             if method==None:
                 raise DsxindexerMethodNotFoundError("不支持的函数名: %s，TOKEN:%s" % (func_name,self.token.throw_error()))
             

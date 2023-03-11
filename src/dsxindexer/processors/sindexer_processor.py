@@ -4,26 +4,19 @@ import time
 import types
 
 from dsxindexer.configer import Cursor,logger
-from dsxindexer.sindexer.MA import MA
-
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.models.kline_model import KlineModel
 from dsxindexer.parser import Parser
-from dsxindexer.sindexer.SMA import SMA
 from dsxindexer.tokenizer import Lexer
 from dsxindexer.functioner import Functioner
 from dsxindexer.processors.base_processor import BaseProcessor
-from dsxindexer.sindexer.EMA import EMA
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from typing import List
 
 class SindexerProcessor(BaseProcessor):
 
-    # 内置一些底层函数
+    # 内置一些底层函数，如果是通过指标记录编写的可以在这里初始化注册
     __processors:List[BaseProcessor]=[
-        EMA,
-        SMA,
-        MA,
     ]
     # 自定义注册指标函数
     processors:List[BaseSindexer] = [
@@ -35,6 +28,8 @@ class SindexerProcessor(BaseProcessor):
         self.klines:List[KlineModel] = self.cover_to_model(klines)
         # 当前游标
         self.cursor = Cursor()
+        # 初始化一个函数库，集成了函数和内存空间
+        self.functioner = Functioner()
         pass
     
     def cover_to_model(self,klines:list):
@@ -106,15 +101,15 @@ class SindexerProcessor(BaseProcessor):
     def regs(self):
         # 给自定义指标注册基础函数
         for cls in self.__processors:
-            obj:BaseSindexer = cls(self.klines,self.cursor)
-            Functioner().register(obj)
+            obj:BaseSindexer = cls(self.klines,self.cursor,self.functioner)
+            # self.functioner.register(obj)
             # setattr(obj,cls.__typename__,types.MethodType(cls.call, obj))
             
         # 把指标公式器都注册并实例化
         ps = []
         for item in self.processors:
-            obj:BaseSindexer = item(self.klines,self.cursor)
-            Functioner().register(obj)
+            obj:BaseSindexer = item(self.klines,self.cursor,self.functioner)
+            # self.functioner.register(obj)
             ps.append(obj)
         self.processors = ps
         

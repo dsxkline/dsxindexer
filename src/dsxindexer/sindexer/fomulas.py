@@ -82,4 +82,50 @@ class Formulas:
         """
         return s % (M,K,X,X)
 
+    def TRIX(X="CLOSE",N=12,M=9):
+        s = """
+        N:=%s;
+        M:=%s;
+        MTR:=EMA(EMA(EMA(%s,N),N),N);
+        TRIX:(MTR-REF(MTR,1))/REF(MTR,1)*100;
+        MATRIX:MA(TRIX,M);
+        """ 
+        return s % (N,M,X)
+
+    def OBV(M=30):
+        s = """
+        M:=%s;
+        VA:=IF(CLOSE>REF(CLOSE,1),VOL,-VOL);
+        OBV:SUM(IF(CLOSE=REF(CLOSE,1),0,VA),0);
+        MAOBV:MA(OBV,M);
+        """
+        return s % M
+    
+    def PSY(N=12,M=6):
+        s = """
+        N:=%s;
+        M:=%s;
+        PSY:COUNT(CLOSE>REF(CLOSE,1),N)/N*100;
+        PSYMA:MA(PSY,M);
+        """
+        return s % (N,M)
+
+    def BRAR(N=26):
+        s = """
+        N:=%s;
+        BR:SUM(MAX(0,HIGH-REF(CLOSE,1)),N)/SUM(MAX(0,REF(CLOSE,1)-LOW),N)*100;
+        AR:SUM(HIGH-OPEN,N)/SUM(OPEN-LOW,N)*100;
+        """
+        return s % N
+    
+    def ROC(N=12,M=6):
+        s = """
+        N:=%s;
+        M:=%s;
+        NN:=MIN(BARSCOUNT(C),N);
+        ROC:100*(CLOSE-REF(CLOSE,NN))/REF(CLOSE,NN);
+        MAROC:MA(ROC,M);
+        """
+        return s % (N,M)
+
 

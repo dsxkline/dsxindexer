@@ -28,7 +28,11 @@ class PlusMinusOperator(BaseOperator):
                 if not isinstance(term,int) and not isinstance(term,float):
                     raise DsxindexerNotNumberError("相减因子格式错误,非数字 term=%s TOKEN:%s" % (term,self.parser.current_token.throw_error()))
                 if not isinstance(result,int) and not isinstance(result,float):
-                    raise DsxindexerNotNumberError("相减因子格式错误,非数字 result=%s TOKEN:%s" % (result,op.throw_error()))
+                    # 遇到取反运算等情况处理
+                    if self.parser.last_avariable==None:
+                        result = 0
+                    else:
+                        raise DsxindexerNotNumberError("相减因子格式错误,非数字 result=%s TOKEN:%s" % (result,op.throw_error()))
                 rs = result - term
                 logger.debug("处理相减：%s - %s = %s"%(result,term,rs))
                 result = rs

@@ -1,10 +1,12 @@
 
 import hashlib
+import inspect
 import math
 import re
+import sys
 from typing import List
 
-from dsxindexer.configer import Cursor,DSX_FIELD_STR,SindexerVarNotFoundError,RegRolues
+from dsxindexer.configer import Cursor,DSX_FIELD_STR,SindexerVarNotFoundError,RegRolues,logger
 
 from dsxindexer.functioner import Functioner
 
@@ -25,15 +27,19 @@ class BaseSindexer:
     __exportvars__:tuple = None
     # 临时数据
     temp = []
-    def __init__(self,klines:List[KlineModel],cursor:Cursor) -> None:
+    def __init__(self,klines:List[KlineModel],cursor:Cursor,functioner:Functioner) -> None:
         # k线数据
         self.klines:List[KlineModel] = klines
         # 当前索引
         self.cursor:Cursor = cursor
+        # 函数库
+        self.functioner = functioner
         # 自己也注册进公式解析器函数库
-        Functioner().register(self)
+        # Functioner().register(self)
+        self.functioner.register(self)
         # 命名空间
         self.namespace = None
+        
         # 保存每个公式的TOKEN_TREE
         self.token_tree = {}
 
@@ -79,14 +85,20 @@ class BaseSindexer:
             obj:dict = self.temp[index]
             if self.namespace in obj.keys():
                 obj = obj.get(self.namespace)
-                if func_name != None:
+                # 函数内部空间不能跟命名空间相同
+                if func_name != None and func_name!=self.namespace:
                     if func_name in obj.keys():
                         obj = obj.get(func_name)
+
             if not isinstance(obj,dict):
                 return obj
 
             if name in list(obj.keys()):
-                    return obj.get(name)  
+                result = obj.get(name)
+                if isinstance(result,SindexerResult):
+                    if hasattr(result,name):
+                        result = getattr(result,name)
+                return result 
                 
 
     def execute(self):
@@ -101,7 +113,7 @@ class BaseSindexer:
         # 词法分析器,表达式分词并标记类型
         lexer = Lexer(expresions)
         # 语法解析器，执行操作符，函数等功能
-        parser = Parser(lexer,namespace=self.namespace,cache_tokens=self.get_token_tree(),func_name=func_name)
+        parser = Parser(lexer,namespace=self.namespace,funcer=self.functioner,cache_tokens=self.get_token_tree(),func_name=func_name)
         # 解析并返回结果
         ps = parser.parse()
         # 导出变量
@@ -183,16 +195,24 @@ class BaseSindexer:
         # 如果X不是一个字段名字符串，是一个数值，就直接返回数值
         if not isinstance(X,str):return X
         # 首先查找X是否是一个变量
-        if hasattr(self,X) and index==self.cursor.index:return getattr(self,X)
+        if hasattr(self,X) and index==self.cursor.index:
+            result = getattr(self,X)
+            return getattr(self,X)
         if self.klines:
             if hasattr(self.klines[index],X):
-                return getattr(self.klines[index],X)
+                result = getattr(self.klines[index],X)
+                if isinstance(result,SindexerResult):
+                    # 解决变量名与命名空间冲突问题
+                    if hasattr(result,X):
+                        return getattr(result,X)
+                else:
+                    return result
         
         rs = self.get_temp(X,index,self.__typename__)
         if rs!=None:return rs
         if index==self.cursor.index:
             # 去函数库命名空间找
-            funcer = Functioner()
+            funcer = self.functioner
             result = funcer.get_value(self.namespace,X,self.__typename__)
             if result!=None:
                 return result
@@ -200,148 +220,49 @@ class BaseSindexer:
             for item in funcer.function_exs:
                 if hasattr(item,X):
                     return getattr(item,X)
-            
-        raise SindexerVarNotFoundError("找不到变量值 %s" % (X))
+        return None
+        # raise SindexerVarNotFoundError("找不到变量值 %s" % (X))
 
-    @property
-    def OPEN(self):
-        if self.klines:return self.klines[self.cursor.index].OPEN
-    @property
-    def HIGH(self):
-        if self.klines:return self.klines[self.cursor.index].HIGH
-    @property
-    def LOW(self):
-        if self.klines:return self.klines[self.cursor.index].LOW
-    @property
-    def CLOSE(self):
-        if self.klines:return self.klines[self.cursor.index].CLOSE
-    @property
-    def VOL(self):
-        if self.klines:return self.klines[self.cursor.index].VOL
-    @property
-    def AMOUNT(self):
-        if self.klines:return self.klines[self.cursor.index].AMOUNT
-    @property
-    def DATE(self):
-        if self.klines:return self.klines[self.cursor.index].DATE
-    
-    def REF(self,X:DSX_FIELD_STR,N:int=1):
-        """向前引用，向前引用必须跟公式MD5命名空间一致，否则多个调用之间会产生命名冲突
-        """
-        i = self.cursor.index - N
-        if i<0:i=0
-        if i>=0: 
-            item = self.klines[i]
-            if hasattr(item,X):
-                return getattr(item,X)
-            # 找不到就拿临时数据
-            result = self.get_temp(X,i,self.__typename__)
-            if result==None:result=0
-            return result
+    staticmethod
+    def reg_modules(module):
+        logger.debug("正则注册函数模块: %s " % module.__name__)
+        # 获取模块中的所有函数
+        functions = inspect.getmembers(sys.modules[module.__name__], inspect.isfunction)
+        # 将所有函数注册到类中
+        for function in functions:
+            setattr(BaseSindexer, function[0], function[1])
+        # 属性方法
+        # 获取模块中的属性方法并注册到类中
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if isinstance(attr, property):
+                # 得到属性的get方法
+                setattr(BaseSindexer, attr_name, property(attr.fget))
+                if attr.fset:
+                    setattr(BaseSindexer, attr_name, attr.fset)
 
-    def LLV(self,X:DSX_FIELD_STR,N:int=1):
-        """周期内最小值
-
-        Args:
-            X (str): 搜索的字段
-            N (int, optional): _description_. Defaults to 1.
-        """
-        result = self.GET(X)
-        index = self.cursor.index
-        for i in range(N):
-            index = self.cursor.index - i
-            if index>=0:
-                result = min(result,self.GET(X,index))
-            else:
-                break
-        return result
-    
-    def HHV(self,X:DSX_FIELD_STR,N:int=1):
-        """周期内最大值
-
-        Args:
-            X (str): 搜索的字段
-            N (int, optional): _description_. Defaults to 1.
-        """
-        result = self.GET(X)
-        index = self.cursor.index
-        for i in range(N):
-            index = self.cursor.index - i
-            if index>=0:
-                result = max(result,self.GET(X,index))
-            else:
-                break
-        return result
-    
-    def AVG(self,X:DSX_FIELD_STR,N:int=1):
-        """返回N周期平均值
-
-        Args:
-            X (DSX_FIELD_STR): _description_
-            N (int, optional): _description_. Defaults to 1.
-        """
-        if self.cursor.index<N:return 0
-        result = 0
-        index = self.cursor.index
-        j = 0
-        for i in range(N):
-            index = self.cursor.index - i
-            if index>=0:
-                result += self.GET(X,index)
-                j += 1
-            else:
-                break
-        return result / j
-    
-    def AVEDEV(self,X:DSX_FIELD_STR,N:int=1):
-        """返回X在N周期内的平均绝对偏差。
-            AVG = (C+REF(C,1)+REF(C,2))/3
-            AVEDEV = (ABS(C-AVG) + ABS(REF(C,1)-AVG) + ABS(REF(C,2)-AVG))/3;
-        Args:
-            X (DSX_FIELD_STR): 变量名或表达式
-            N (int, optional): _description_. Defaults to 1.
-        """
-        if self.cursor.index<N:return 0
-        # N周期均值
-        avg = self.AVG(X,N)
-        j = 0
-        result = 0
-        for i in range(N):
-            index = self.cursor.index - i
-            if index>=0:
-                # 计算数据与平均值之间方差的绝对值的总和
-                result += abs(self.GET(X,index)-avg)
-                j +=1
-            else:
-                break
-            
-        return result / j
-    
-    def STD(self,X:DSX_FIELD_STR,N:int=1):
-        """计算N周期X的标准差
-        Args:
-            X (DSX_FIELD_STR): 变量名或表达式
-            N (int, optional): _description_. Defaults to 1.
-        """
-        if self.cursor.index<N:return 0
-        # N周期均值
-        avg = self.AVG(X,N)
-        j = 0
-        result = 0
-        for i in range(N):
-            index = self.cursor.index - i
-            if index>=0:
-                # 每个样本数据 减去样本全部数据的平均值 的平方相加
-                minus = self.GET(X,index)-avg
-                result += minus * minus
-                j +=1
-            else:
-                break
-        # 标准偏差
-        s = math.sqrt(result / (j - 1))
-        return s
-
-
+ 
+# 导入常用函数
+import dsxindexer.sindexer.base.cons_funcs as cons_funcs
+BaseSindexer.reg_modules(cons_funcs)
+# 导入逻辑函数
+import dsxindexer.sindexer.base.logical_funcs as logical_funcs
+BaseSindexer.reg_modules(logical_funcs)
+# 导入行情函数
+import dsxindexer.sindexer.base.price_funcs as price_funcs
+BaseSindexer.reg_modules(price_funcs)
+# 导入数学和统计函数
+import dsxindexer.sindexer.base.math_funcs as math_funcs
+BaseSindexer.reg_modules(math_funcs)
+# 导入大盘函数
+import dsxindexer.sindexer.base.large_funcs as large_funcs
+BaseSindexer.reg_modules(large_funcs)
+# 导入引用函数
+import dsxindexer.sindexer.base.refer_funcs as refer_funcs
+BaseSindexer.reg_modules(refer_funcs)
+# 导入指标函数
+import dsxindexer.sindexer.base.index_funcs as index_funcs
+BaseSindexer.reg_modules(index_funcs)
         
     
 

@@ -15,9 +15,6 @@ class MACD(BaseSindexer):
     def call(self,X:DSX_FIELD_STR,SHORT=12,LONG=26,MID=9):
         f = Formulas.MACD(X,SHORT,LONG,MID)
         if f: return self.parser(f,self.__typename__)
-        # DIF=self.EMA(X,SHORT)-self.EMA(X,LONG)
-        # DEA=self.EMA('DIF',MID)
-        # MACD=(DIF-DEA)*2
 
     def compiled(self):
         return super().compiled()

@@ -2,13 +2,13 @@ import re
 import threading
 from dsxindexer.configer import logger
 
-def singleton(cls):
-    instances = {}
-    def get_instance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    return get_instance
+# def singleton(cls):
+#     instances = {}
+#     def get_instance(*args, **kwargs):
+#         if cls not in instances:
+#             instances[cls] = cls(*args, **kwargs)
+#         return instances[cls]
+#     return get_instance
 
 def synchronized(func):
     func.__lock__ = threading.Lock()
@@ -19,7 +19,7 @@ def synchronized(func):
 
     return wrapper
 
-@singleton
+# @singleton
 class Functioner:
     def __init__(self) -> None:
         self.function_exs = []
@@ -103,13 +103,15 @@ class Functioner:
             func_name (str): 函数内部变量
         """
         g = {}
-        ns = None
         if namespace:
             if namespace in list(self.variables.keys()):
-                ns = self.variables.get(namespace)
-                if func_name and isinstance(ns,dict):
-                    if func_name in ns.keys():
-                        g = ns.get(func_name)
+                g = self.variables.get(namespace)
+                if isinstance(g,dict):
+                    if func_name!=None:
+                        if func_name in g.keys():
+                            result = g.get(func_name)
+                            if isinstance(result,dict):
+                                g = g.get(func_name)
                 else:
                     g = self.variables.get(namespace)
         if not isinstance(g,dict):
@@ -120,8 +122,5 @@ class Functioner:
 
         if name in list(g.keys()):
             return g.get(name)
-        # 有时候函数内部引用外部命名空间的变量
-        if ns:
-            if name in ns.keys():
-                return ns.get(name)
+       
     

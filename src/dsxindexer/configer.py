@@ -57,6 +57,8 @@ class TokenType:
     LPAREN = 'LPAREN'
     # 右括号
     RPAREN = 'RPAREN'
+    # 赋值符号
+    ASSIGN = 'ASSIGN'
     # 等于号
     EQUAL = 'EQUAL'
     # 不等于号
