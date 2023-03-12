@@ -1,1 +1,1 @@
-recursive-include src/dsxquant *.py
+recursive-include src/dsxindexer *.py
