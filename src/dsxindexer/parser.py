@@ -17,11 +17,15 @@ from dsxindexer.tokenizer import Lexer,TokenType
 from dsxindexer.processors.factor_processor import FactorProcessor
 
 class Parser:
-    def __init__(self, lexer:Lexer,funcer:Functioner=Functioner(),namespace:str=None):
+    def __init__(self, lexer:Lexer,funcer:Functioner=Functioner(),namespace:str=None,cache_tokens:list=None,func_name:str=None):
+        # 已解析词法TOKEN,用于已编译解析,避免重复扫描词法
+        self.cache_tokens = cache_tokens
+        # 当前游标
+        self.cursor = 0
         # 传入词法解析器，把表达式转换为Token集合
         self.lexer = lexer
         # 这里相当于取得第一个词法解析器的Token
-        self.current_token = self.lexer.get_next_token()
+        self.current_token = self.get_next_token()
         # 上一个变量名,解析等于号的时候需要把右边的值赋值给左边的变量
         self.last_avariable = None
         # 函数源，里面可以自由定义语法支持的函数集
@@ -32,8 +36,14 @@ class Parser:
         self.factor_processor = FactorProcessor()
         # 最终返回结果
         self.result = None
-        # 变量树保存分支
+        # 变量的命名空间，整个输入流会分配一个命名空间
         self.namespace = namespace
+        # 函数内部，解析函数内部的时候命名空间需要开辟函数内部空间
+        self.func_name = func_name
+        # TOKEN树,可以保存解析语句
+        self.token_tree = [self.current_token]
+        # 需要导出变量的变量名，在公式中用单个冒号赋值就是需要导出的变量
+        self.export = []
 
     def parse(self):
         self.result = self.expr()
@@ -67,9 +77,18 @@ class Parser:
     # 继续下一个
     def eat(self, token_type):
         if self.current_token.type == token_type:
-            self.current_token = self.lexer.get_next_token()
+            self.current_token = self.get_next_token()
+            self.token_tree.append(self.current_token)
         else:
             raise Exception('Syntax error')
+    
+    def get_next_token(self):
+        if self.cache_tokens:
+            result = self.cache_tokens[self.cursor]
+            self.cursor += 1
+            return result
+        else:
+            return self.lexer.get_next_token()
     
 
 

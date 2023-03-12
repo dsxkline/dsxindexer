@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
-Name: dsxquant
-Version: 1.1.0
-Summary: Dsxquant 是一个基于python语言开发的的量化工具箱，主要特征是其工具属性，专为上层策略应用提供服务。
-Home-page: https://github.com/dsxkline/dsxquant
+Name: dsxsindexer
+Version: 1.0.0
+Summary: dsxsindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能
+Home-page: https://github.com/dsxkline/dsxsindexer
 Author: fangyunsm
 Author-email: 934476300@qq.com
 Requires-Python: >=3.6,<4

@@ -1,10 +1,10 @@
 [project]
-name = "dsxquant"
+name = "dsxsindexer"
 version = "1.1.0"
 authors = [
   { name="fangyunsm", email="934476300@qq.com" },
 ]
-description = "Dsxquant 是一个基于python语言开发的的量化工具箱，主要特征是其工具属性，专为上层策略应用提供服务。"
+description = "dsxsindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -14,5 +14,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/dsxkline/dsxquant"
-"Bug Tracker" = "https://github.com/dsxkline/dsxquant/issues"
+"Homepage" = "https://github.com/dsxkline/dsxsindexer"
+"Bug Tracker" = "https://github.com/dsxkline/dsxsindexer/issues"
