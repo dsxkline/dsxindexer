@@ -1,10 +1,10 @@
 [project]
-name = "dsxsindexer"
-version = "1.1.0"
+name = "dsxindexer"
+version = "1.0.0"
 authors = [
   { name="fangyunsm", email="934476300@qq.com" },
 ]
-description = "dsxsindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能"
+description = "dsxindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -14,5 +14,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/dsxkline/dsxsindexer"
-"Bug Tracker" = "https://github.com/dsxkline/dsxsindexer/issues"
+"Homepage" = "https://github.com/dsxkline/dsxindexer"
+"Bug Tracker" = "https://github.com/dsxkline/dsxindexer/issues"

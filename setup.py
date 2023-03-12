@@ -8,19 +8,19 @@ def readme():
 
 
 setup(
-    name="dsxsindexer",  # 包名称
+    name="dsxindexer",  # 包名称
     version="1.0.0",  # 版本号
     author="fangyunsm",  # 作者
     author_email="934476300@qq.com",  # 作者邮箱
-    description="dsxsindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能",  # 描述
+    description="dsxindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能",  # 描述
     long_description=readme(),  # 长文描述
-    keywords="通达信指标, 公式编辑器,量化指标",  # 项目关键词
-    url="https://github.com/dsxkline/dsxsindexer",  # 项目主页
+    keywords="通达信指标,公式编辑器,量化指标",  # 项目关键词
+    url="https://github.com/dsxkline/dsxindexer",  # 项目主页
     license="MIT License",  # 许可证
     # packages=find_namespace_packages('pydsxkline'),
     zip_safe=False,
-    packages=['dsxsindexer'],
-    package_dir={"dsxsindexer": "src/dsxsindexer"},
+    packages=['dsxindexer'],
+    package_dir={"dsxindexer": "src/dsxindexer"},
     include_package_data=True,
     # package_data={"": ['*.py', '*.js', '*.html']},
     # install_requires=['pywebview'],
