@@ -12,7 +12,6 @@ class RSI(BaseSindexer):
     由上面算式可知RSI指标的技术含义，即以向上的力量与向下的力量进行比较，若向上的力量较大，则计算出来的指标上升；若向下的力量较大，则指标下降，由此测算出市场走势的强弱。
     """
     __typename__ = "RSI"
-    # __exportvars__ = ("RSI6","RSI12","RSI24")
 
     def formula(self):
         return Formulas.RSI()

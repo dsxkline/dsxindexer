@@ -6,7 +6,6 @@ class MACD(BaseSindexer):
     """MACD
     """
     __typename__ = "MACD"
-    # __exportvars__ = ("MACD","DIF","DEA")
 
     def formula(self):
         return Formulas.MACD()
@@ -15,6 +14,3 @@ class MACD(BaseSindexer):
     def call(self,X:DSX_FIELD_STR,SHORT=12,LONG=26,MID=9):
         f = Formulas.MACD(X,SHORT,LONG,MID)
         if f: return self.parser(f,self.__typename__)
-
-    def compiled(self):
-        return super().compiled()

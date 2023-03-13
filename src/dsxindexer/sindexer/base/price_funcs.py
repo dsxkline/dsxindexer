@@ -26,6 +26,22 @@ def AMOUNT(self:BaseSindexer):
 def DATE(self:BaseSindexer):
     if self.klines:return self.klines[self.cursor.index].DATE
 @property
+def O(self:BaseSindexer):
+    if self.klines:return self.klines[self.cursor.index].OPEN
+@property
+def H(self:BaseSindexer):
+    if self.klines:return self.klines[self.cursor.index].HIGH
+@property
+def L(self:BaseSindexer):
+    if self.klines:return self.klines[self.cursor.index].LOW
+@property
+def C(self:BaseSindexer):
+    if self.klines:return self.klines[self.cursor.index].CLOSE
+@property
+def V(self:BaseSindexer):
+    if self.klines:return self.klines[self.cursor.index].VOL
+
+@property
 def ADVANCE(self:BaseSindexer):
     """返回该周期上涨家数 仅对大盘有效
     """

@@ -10,7 +10,6 @@ class KDJ(BaseSindexer):
 J=3×K-2×D
     """
     __typename__ = "KDJ"
-    __exportvars__ = ("K","D","J")
 
     def formula(self):
         return Formulas.KDJ()

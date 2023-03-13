@@ -16,7 +16,6 @@ class DMI(BaseSindexer):
     （5）再通过当日的ADX与前面某一日的ADX相比较，计算出ADX的评估数值ADXR。
     """
     __typename__ = "DMI"
-    # __exportvars__ = ("RSI6","RSI12","RSI24")
 
     def formula(self):
         return Formulas.DMI()

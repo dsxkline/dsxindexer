@@ -54,7 +54,7 @@ class SindexerProcessor(BaseProcessor):
                 m.VOL = float(v)
                 m.AMOUNT = float(a)
                 newklines.append(m)
-            klines.clear()
+            # klines.clear()
         return newklines
     
     def get_date(self,date:str):

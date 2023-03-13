@@ -13,7 +13,6 @@ class ROC(BaseSindexer):
     5.参数N为12参数M为6
     """
     __typename__ = "ROC"
-    # __exportvars__ = ("RSI6","RSI12","RSI24")
 
     def formula(self):
         return Formulas.ROC()

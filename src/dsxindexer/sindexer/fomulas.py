@@ -128,4 +128,18 @@ class Formulas:
         """
         return s % (N,M)
 
+    def CDP():
+        s = """
+        CH:=REF(H,1);
+        CL:=REF(L,1);
+        CC:=REF(C,1);
+        CDP:(CH+CL+CC*2)/4;
+        AH:CDP+CH-CL;
+        NH:CDP+CDP-CL;
+        NL:CDP+CDP-CH;
+        AL:CDP-CH+CL;
+        """
+
+    
+
 

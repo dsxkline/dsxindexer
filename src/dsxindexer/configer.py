@@ -1,5 +1,5 @@
 import logging,logging.config
-DEBUG = True
+DEBUG = False
 if DEBUG:
     LOGLEVEL = logging.DEBUG
 else:

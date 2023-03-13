@@ -3,6 +3,7 @@ from dsxindexer.configer import logger,logging
 from dsxindexer.sindexer.BOLL import BOLL
 from dsxindexer.sindexer.BRAR import BRAR
 from dsxindexer.sindexer.CCI import CCI
+from dsxindexer.sindexer.CDP import CDP
 from dsxindexer.sindexer.DMI import DMI
 from dsxindexer.sindexer.MACD import MACD
 from dsxindexer.sindexer.KDJ import KDJ
@@ -79,7 +80,8 @@ if __name__=="__main__":
         # sp.register(OBV)
         # sp.register(PSY)
         # sp.register(BRAR)
-        sp.register(ROC)
+        # sp.register(ROC)
+        sp.register(CDP)
         # sp.register(MAn)
         # 通过指标工厂自定义指标
         MA10 = SindexerFactory.create("MA10","MA10:MA(CLOSE,10);",functioner=sp.functioner)
@@ -105,7 +107,8 @@ if __name__=="__main__":
         # logger.info(model.DATE+" %s" % vars(model.OBV))
         # logger.info(model.DATE+" %s" % vars(model.PSY))
         # logger.info(model.DATE+" %s" % vars(model.BRAR))
-        logger.info(model.DATE+" %s" % vars(model.ROC))
+        # logger.info(model.DATE+" %s" % vars(model.ROC))
+        logger.info(model.DATE+" %s" % vars(model.CDP))
         # logger.info(model.DATE+" %s" % vars(model.MAn))
         # logger.info(model.DATE+" %s" % model.MA10)
         # logger.info(model.DATE+" %s" % model.MA30)
