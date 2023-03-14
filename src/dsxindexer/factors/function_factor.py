@@ -82,16 +82,17 @@ class FunctionFactor(BaseFactor):
                 if typename==DSX_FIELD_STR:
                     # 如果参数是一个表达式，我们需要自动构建一个变量给这个表达式，方便在未来某个时刻提取出来，也方便储存其历史记录
                     if not re.match(RegRolues.VARIABLE,item):
-                        # 用其MD5值构建变量名
-                        var_temp = "var_temp_"+self.md5(item)
+                        # 用其MD5值构建变量名,有可能同名，所以取得他们的位置信息
+                        var_temp = "var_temp_"+self.md5(item)+"_"+str(i)
                         # 构建临时表达式
                         expr_tem = var_temp+ASSIGN_CHART+item+";"
                         # 解析
-                        self.parser_func_args(expr_tem,func_name)
+                        self.parser_func_args(expr_tem,self.parser.namespace)
                         item = var_temp
                     args.append(item)
+                        
                 else:
-                    args.append(self.parser_func_args(item,func_name))
+                    args.append(self.parser_func_args(item,self.parser.namespace))
                 i +=1
             # 调用方法
             result = method(*args)
@@ -103,14 +104,14 @@ class FunctionFactor(BaseFactor):
         md5.update(text.encode("utf-8"))
         return md5.hexdigest()
     
-    def parser_func_args(self,expre,func_name):
+    def parser_func_args(self,expre,namespace):
         """解析函数参数"""
         from dsxindexer.tokenizer import Lexer
         from dsxindexer.parser import Parser
         # 词法分析器
         lexer = Lexer(expre,ExpreItemDirection.RIGHT,self.token.location[0])
         # 语法解析器
-        parser = Parser(lexer,self.parser.funcer,self.parser.namespace)
+        parser = Parser(lexer,self.parser.funcer,namespace)
         # 解析并返回结果
         ps = parser.parse()
         return ps.result

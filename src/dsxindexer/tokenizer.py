@@ -100,16 +100,23 @@ class Lexer:
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.next()
-        return Token(TokenType.INTEGER, float(result),self.direction,location=(self.row,self.col),context=self.current_line)
+        return Token(TokenType.FLOAT, float(result),self.direction,location=(self.row,self.col),context=self.current_line)
 
     # 提取变量名
     def variable(self):
         # 遇到等号和换行符以及操作符都必须退出
         result = ''
+        ttype = TokenType.VARIABLE
         while self.current_char is not None and self.current_char not in configer.ASSIGN_CHART and self.current_char!=configer.EXPR_END_CHART and not self.current_char.isspace() and not re.match(configer.RegRolues.OPERATIONS,self.current_char):
             if re.match(configer.RegRolues.VARIABLE_NAME,self.current_char):
                 result += self.current_char
             else:
+                # 遇到点号，表明使用引用对象
+                if self.current_char==".":
+                    result += self.current_char
+                    ttype = TokenType.STRING
+                    self.next()
+                    continue
                 # 遇到括号就是函数
                 if self.current_char == "(":
                     return self.get_function(str(result))
@@ -117,7 +124,7 @@ class Lexer:
                 # 如果变量名含有特殊字符，报错
                 raise DsxindexerVariableNameError("变量命名错误，含有特殊字符：%s" % self.current_char) 
             self.next()
-        return Token(TokenType.VARIABLE, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
+        return Token(ttype, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
     
     def get_function(self,func_name):
         """识别为函数的时候，方向需要指向等号右边，否则无法获取到变量值
@@ -247,56 +254,54 @@ class Lexer:
                 # 移动字符
                 self.next()
                 return Token(TokenType.PLUS, "+",self.direction,location=(self.row,self.col),context=self.current_line)
-
+            # 减
             if self.current_char == '-':
                 self.next()
                 return Token(TokenType.MINUS, "-",self.direction,location=(self.row,self.col),context=self.current_line)
-
+            # 乘
             if self.current_char == '*':
                 self.next()
                 return Token(TokenType.MUL, "*",self.direction,location=(self.row,self.col),context=self.current_line)
-
+            # 识别除
             if self.current_char == '/':
                 self.next()
                 return Token(TokenType.DIV, "/",self.direction,location=(self.row,self.col),context=self.current_line)
-            
+            # 识别取余
             if self.current_char == '%':
                 self.next()
                 return Token(TokenType.PERCENT, "%",self.direction,location=(self.row,self.col),context=self.current_line)
-
+            # 识别括号
             if self.current_char == '(':
                 self.next()
                 return self.paren()
-            
+            # 识别大于等于
             if self.current_char == '>':
                 self.next()
                 if self.current_char == '=':
                     self.next()
                     return Token(TokenType.GREATERTHEN_AND, ">=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.GREATERTHEN, ">",self.direction,location=(self.row,self.col),context=self.current_line)
-            
+            # 识别小于等于
             if self.current_char == '<':
                 self.next()
                 if self.current_char == '=':
                     self.next()
                     return Token(TokenType.LESSTHEN_AND, "<=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.LESSTHEN, "<",self.direction,location=(self.row,self.col),context=self.current_line)
-            
+            # 识别与号
             if self.current_char == '&':
                 self.next()
                 if self.current_char == '&':
                     self.next()
                     return Token(TokenType.AND, "&&",self.direction,location=(self.row,self.col),context=self.current_line)
-                
+            # 识别非或者不等于
             if self.current_char == '!':
                 self.next()
                 if self.current_char == '=':
                     self.next()
                     return Token(TokenType.NOTEQUAL, "!=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.NOT, "!",self.direction,location=(self.row,self.col),context=self.current_line)
-            
-            
-                
+            # 识别或号
             if self.current_char == '|':
                 self.next()
                 if self.current_char == '|':

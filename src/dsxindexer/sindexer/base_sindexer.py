@@ -27,21 +27,22 @@ class BaseSindexer:
     __exportvars__:tuple = None
     # 临时数据
     temp = []
-    def __init__(self,klines:List[KlineModel],cursor:Cursor,functioner:Functioner) -> None:
+    def __init__(self,klines:List[KlineModel],cursor:Cursor) -> None:
         # k线数据
         self.klines:List[KlineModel] = klines
         # 当前索引
         self.cursor:Cursor = cursor
         # 函数库
-        self.functioner = functioner
-        # 自己也注册进公式解析器函数库
-        # Functioner().register(self)
-        self.functioner.register(self)
+        self.functioner = None
         # 命名空间
         self.namespace = None
-        
         # 保存每个公式的TOKEN_TREE
         self.token_tree = {}
+    
+    def set_functioner(self,functioner:Functioner):
+        if functioner:
+            self.functioner = functioner
+            self.functioner.register(self)
 
     def formula(self):
         pass
@@ -194,6 +195,7 @@ class BaseSindexer:
         if index==None:index=self.cursor.index
         # 如果X不是一个字段名字符串，是一个数值，就直接返回数值
         if not isinstance(X,str):return X
+        if isinstance(index,float):index = int(index)
         # 首先查找X是否是一个变量
         if hasattr(self,X) and index==self.cursor.index:
             result = getattr(self,X)

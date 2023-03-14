@@ -50,7 +50,8 @@ def CROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR):
     BB = self.GET(B)
     RAA = self.GET(A,1)
     RBB = self.GET(B,1)
-    if RAA<RBB and AA>BB:
+    if AA==None or BB==None or RAA==None or RBB==None:return 0
+    if RAA<=RBB and AA>BB:
         return 1
     return 0
 
@@ -65,6 +66,21 @@ def LONGCROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR,N:int):
         B (DSX_FIELD_STR): _description_
         N (int): _description_
     """
+    # 前N个周期都是A小于B，本周期大于等于B
+    AA = self.GET(A)
+    BB = self.GET(B)
+    if AA>=BB:
+        true = 1
+        start = max(0,self.cursor.index - N)
+        for i in range(start,self.cursor.index):
+            RAA = self.GET(A,i)
+            RBB = self.GET(B,i)
+            if RAA>=RBB: 
+                true=0
+                break
+        return true
+    return 0
+
 
 def UPNDAY(self:BaseSindexer,CLOSE:DSX_FIELD_STR,M:int):
     """

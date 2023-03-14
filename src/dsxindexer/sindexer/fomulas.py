@@ -54,6 +54,7 @@ class Formulas:
         """ 
         return s % (N,N1,N,N1)
     
+    @staticmethod
     def DMI(N=14,M=6):
         s = """
         N:=%s;
@@ -70,6 +71,7 @@ class Formulas:
         """
         return s % (N,M)
     
+    @staticmethod
     def BOLL(X="CLOSE",M=20,K=2):
         s = """
         M:=%s;
@@ -82,6 +84,7 @@ class Formulas:
         """
         return s % (M,K,X,X)
 
+    @staticmethod
     def TRIX(X="CLOSE",N=12,M=9):
         s = """
         N:=%s;
@@ -92,6 +95,7 @@ class Formulas:
         """ 
         return s % (N,M,X)
 
+    @staticmethod
     def OBV(M=30):
         s = """
         M:=%s;
@@ -101,6 +105,7 @@ class Formulas:
         """
         return s % M
     
+    @staticmethod
     def PSY(N=12,M=6):
         s = """
         N:=%s;
@@ -110,6 +115,7 @@ class Formulas:
         """
         return s % (N,M)
 
+    @staticmethod
     def BRAR(N=26):
         s = """
         N:=%s;
@@ -117,7 +123,7 @@ class Formulas:
         AR:SUM(HIGH-OPEN,N)/SUM(OPEN-LOW,N)*100;
         """
         return s % N
-    
+    @staticmethod
     def ROC(N=12,M=6):
         s = """
         N:=%s;
@@ -127,7 +133,7 @@ class Formulas:
         MAROC:MA(ROC,M);
         """
         return s % (N,M)
-
+    @staticmethod
     def CDP():
         s = """
         CH:=REF(H,1);
@@ -139,7 +145,89 @@ class Formulas:
         NL:CDP+CDP-CH;
         AL:CDP-CH+CL;
         """
-
+        return s
+    @staticmethod
+    def DMA(N1=10,N2=50,M=10):
+        s = """
+        N1:=%s;
+        N2:=%s;
+        M:=%s;
+        DIF:MA(CLOSE,N1)-MA(CLOSE,N2);
+        DIFMA:MA(DIF,M);
+        """
+        return s % (N1,N2,M)
+    @staticmethod
+    def CR(N=26,M1=10,M2=20,M3=40,M4=62):
+        s = """
+        N:=%s;
+        M1:=%s;
+        M2:=%s:
+        M3:=%s;
+        M4:=%s;
+        MID:=REF(HIGH+LOW,1)/2;
+        CR:SUM(MAX(0,HIGH-MID),N)/SUM(MAX(0,MID-LOW),N)*100;
+        MA1:REF(MA(CR,M1),M1/2.5+1);
+        MA2:REF(MA(CR,M2),M2/2.5+1);
+        MA3:REF(MA(CR,M3),M3/2.5+1);
+        MA4:REF(MA(CR,M4),M4/2.5+1);
+        """
+        return s % (N,M1,M2,M3,M4)
+    @staticmethod
+    def EMV(N=14,M=9):
+        s = """
+        N:=%s;
+        M:=%s;
+        VOLUME:=MA(VOL,N)/VOL;
+        MID:=100*(HIGH+LOW-REF(HIGH+LOW,1))/(HIGH+LOW);
+        EMV:MA(MID*VOLUME*(HIGH-LOW)/MA(HIGH-LOW,N),N);
+        MAEMV:MA(EMV,M);
+        """
+        return s % (N,M)
+    @staticmethod
+    def MIKE(N=10):
+        s = """
+        N:=%s;
+        HLC:=REF(MA((HIGH+LOW+CLOSE)/3,N),1);
+        HV:=EMA(HHV(HIGH,N),3);
+        LV:=EMA(LLV(LOW,N),3);
+        STOR:EMA(2*HV-LV,3);
+        MIDR:EMA(HLC+HV-LV,3);
+        WEKR:EMA(HLC*2-LV,3);
+        WEKS:EMA(HLC*2-HV,3);
+        MIDS:EMA(HLC-HV+LV,3);
+        STOS:EMA(2*LV-HV,3);
+        """
+        return s % N
+    @staticmethod
+    def EXPMA(M1=12,M2=50):
+        s = """
+        M1:=%s;
+        M2:=%s;
+        EXP1:EMA(CLOSE,M1);
+        EXP2:EMA(CLOSE,M2);
+        """
+        return s % (M1,M2)
+    @staticmethod
+    def VR(N=26,M=6):
+        s = """
+        N:=%s;
+        M:=%s;
+        TH:=SUM(IF(CLOSE>REF(CLOSE,1),VOL,0),N);
+        TL:=SUM(IF(CLOSE<REF(CLOSE,1),VOL,0),N);
+        TQ:=SUM(IF(CLOSE=REF(CLOSE,1),VOL,0),N);
+        VR:100*(TH*2+TQ)/(TL*2+TQ);
+        MAVR:MA(VR,M);
+        """
+        return s % (N,M)
+    @staticmethod
+    def WVAD(N=24,M=6):
+        s = """
+        N:=%s;
+        M:=%s;
+        WVAD:SUM((CLOSE-OPEN)/(HIGH-LOW)*VOL,N)/10000;
+        MAWVAD:MA(WVAD,M);
+        """
+        return s % (N,M)
     
 
 

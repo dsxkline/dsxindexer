@@ -35,6 +35,7 @@ class RegRolues:
     # 识别变量名称正则
     VARIABLE = r'^[a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_]*$'
     VARIABLE_NAME = r'^[a-zA-Z0-9_\u4e00-\u9fa5]*$'
+    OBJ_POINT_VAR = r'\b([a-zA-Z_]\w*)\.\w+\b'
     OPERATIONS = r'^(\+|\-|\*|\/|\%|\=\=|\!\=|\>|\<|\>\=|\<\=|\&\&|\|\|)$'
 
 # Token 类型定义，就是定义表达式字符串每个字符是什么类型
