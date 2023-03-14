@@ -9,7 +9,6 @@ class WR(BaseSindexer):
     W%R=（Hn—C）÷（Hn—Ln）×100
     """
     __typename__ = "WR"
-    # __exportvars__ = ("RSI6","RSI12","RSI24")
 
     def formula(self):
         return Formulas.WR()

@@ -10,6 +10,7 @@ def MA(self:BaseSindexer,X:DSX_FIELD_STR="CLOSE",N=5):
     
     """
     amount = 0
+    if isinstance(N,float):N = int(N)
     if self.cursor.index - N<0:return 0
     start = max(0,self.cursor.index - N)+1
     end = self.cursor.index+1
@@ -32,7 +33,7 @@ def DMA(self:BaseSindexer,X:DSX_FIELD_STR,N:float):
         N (float): _description_
     """
 
-def EMA(self:BaseSindexer,X:DSX_FIELD_STR,N:int):
+def EMA(self:BaseSindexer,X:DSX_FIELD_STR,N:int=1):
     """指数平滑移动平均卖一价求指数平滑移动平均。
     若Y=EMA(X,N)则Y=[2*X+(N-1)*Y']/(N+1),其中Y'表示上一周期Y值。
     EMA(CLOSE,30)表示求30日指数平滑均价

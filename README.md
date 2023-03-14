@@ -3,20 +3,23 @@
 
 ## 使用方法
 ```python
-
+import traceback
+import dsxindexer
 import dsxquant
 
-class ABCD(BaseSindexer):
+class ABCD(dsxindexer.BaseSindexer):
     """ABCD
     通过继承指标器基类自定义ABCD指标
     """
     # 定义指标名称
     __typename__ = "ABCD"
-    # 定义导出的变量名
-    # __exportvars__ = ("A","B","C","D")
 
     def formula(self):
         return """
+        long:MACD.LONG;
+        金叉:CROSS(MACD.DIF,MACD.DEA);
+        死叉:LONGCROSS(MACD.DIF,MACD.DEA,5) AND MACD.DIF<-0.1 ;
+        Kjd:"KDJ.K";
         # 这里是注释
         A:CLOSE;#收盘价
         B:HIGH;#最高价
@@ -30,7 +33,7 @@ class ABCD(BaseSindexer):
         哈哈:!90;
         """
 
-class MAn(BaseSindexer):
+class MAn(dsxindexer.BaseSindexer):
     """MAn
     """
     # 定义指标名称
@@ -45,61 +48,29 @@ class MAn(BaseSindexer):
         
 if __name__=="__main__":
     try:
-        logger.setLevel(logging.INFO)
+        # logger.setLevel(logging.INFO)
         # 获取K线历史数据
         klines = dsxquant.get_klines("000001",dsxquant.market.SZ).datas()
         klines:list = klines.data
         klines.reverse()
-        logger.info("开始处理....")
+        dsxindexer.logger.info("开始处理....")
         # 指标处理器
-        sp = SindexerProcessor(klines)
-        # 自定义继承类注册
-        # sp.register(MACD)
-        # sp.register(KDJ)
-        # sp.register(ABCD)
-        # sp.register(RSI)
-        # sp.register(CCI)
-        # sp.register(WR)
-        # sp.register(DMI)
-        # sp.register(BOLL)
-        # sp.register(TRIX)
-        # sp.register(OBV)
-        # sp.register(PSY)
-        # sp.register(BRAR)
-        sp.register(ROC)
-        # sp.register(MAn)
+        sp = dsxindexer.sindexer(klines)
+        # 注册自定义指标
+        sp.register(ABCD)
+        # 注册系统指标
+        sp.register(dsxindexer.INDEXER.WVAD)
+        sp.register(MAn)
         # 通过指标工厂自定义指标
-        MA10 = SindexerFactory.create("MA10","MA10:MA(CLOSE,10);",functioner=sp.functioner)
-        # sp.register(MA10)
-        # MA30 = SindexerFactory.create("MA30","MA10:MA(CLOSE,30);",functioner=sp.functioner)
-        # sp.register(MA30)
-        # MA60 = SindexerFactory.create("MA60","MA10:MA(CLOSE,60);",functioner=sp.functioner)
-        # sp.register(MA60)
+        MA10 = dsxindexer.factory.create("MA10","MA10:MA(CLOSE,10);")
+        sp.register(MA10)
         # 执行计算结果
         result = sp.execute()
         # 取最后一个
         model = result[-1]
-        # 标准值 K:70.5 D:60.62 J:90.26
-        # logger.info(model.DATE+" %s" % vars(model.MACD))
-        # logger.info(model.DATE+" %s" % vars(model.KDJ))
-        # logger.info(model.DATE+" %s" % vars(model.ABCD))
-        # logger.info(model.DATE+" %s" % vars(model.RSI))
-        # logger.info(model.DATE+" %s" % model.CCI)
-        # logger.info(model.DATE+" %s" % vars(model.WR))
-        # logger.info(model.DATE+" %s" % vars(model.DMI))
-        # logger.info(model.DATE+" %s" % vars(model.BOLL))
-        # logger.info(model.DATE+" %s" % vars(model.TRIX))
-        # logger.info(model.DATE+" %s" % vars(model.OBV))
-        # logger.info(model.DATE+" %s" % vars(model.PSY))
-        # logger.info(model.DATE+" %s" % vars(model.BRAR))
-        logger.info(model.DATE+" %s" % vars(model.ROC))
-        # logger.info(model.DATE+" %s" % vars(model.MAn))
-        # logger.info(model.DATE+" %s" % model.MA10)
-        # logger.info(model.DATE+" %s" % model.MA30)
-        # logger.info(model.DATE+" %s" % model.MA60)
- 
+        dsxindexer.logger.info(model.DATE+" %s" % vars(model.ABCD))
+        dsxindexer.logger.info(model.DATE+" %s" % vars(model.WVAD))
     except Exception as e:
-        logger.error(e)
+        dsxindexer.logger.error(e)
         traceback.print_exc()
-        
 ```

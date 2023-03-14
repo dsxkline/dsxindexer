@@ -35,6 +35,7 @@ def NOT(self:BaseSindexer,X:DSX_FIELD_STR):
 
 def CROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR):
     """交叉函数
+    表示当A从下方向上穿过B时返回1,否则返回0
     A：变量或常量，判断交叉的第一条线
     B：变量或常量，判断交叉的第二条线
     CROSS（MA（CLOSE，5），MA（CLOSE，10））5日均线与10日均线金叉；
@@ -45,6 +46,14 @@ def CROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR):
         A (DSX_FIELD_STR): _description_
         B (DSX_FIELD_STR): _description_
     """
+    AA = self.GET(A)
+    BB = self.GET(B)
+    RAA = self.GET(A,1)
+    RBB = self.GET(B,1)
+    if AA==None or BB==None or RAA==None or RBB==None:return 0
+    if RAA<=RBB and AA>BB:
+        return 1
+    return 0
 
 def LONGCROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR,N:int):
     """两条线维持一定周期后交叉
@@ -57,6 +66,21 @@ def LONGCROSS(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR,N:int):
         B (DSX_FIELD_STR): _description_
         N (int): _description_
     """
+    # 前N个周期都是A小于B，本周期大于等于B
+    AA = self.GET(A)
+    BB = self.GET(B)
+    if AA>=BB:
+        true = 1
+        start = max(0,self.cursor.index - N)
+        for i in range(start,self.cursor.index):
+            RAA = self.GET(A,i)
+            RBB = self.GET(B,i)
+            if RAA>=RBB: 
+                true=0
+                break
+        return true
+    return 0
+
 
 def UPNDAY(self:BaseSindexer,CLOSE:DSX_FIELD_STR,M:int):
     """

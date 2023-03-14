@@ -18,12 +18,13 @@ class SindexerProcessor(BaseProcessor):
     # 内置一些底层函数，如果是通过指标记录编写的可以在这里初始化注册
     __processors:List[BaseProcessor]=[
     ]
-    # 自定义注册指标函数
-    processors:List[BaseSindexer] = [
-        
-    ]
+   
 
     def __init__(self,klines:list=None) -> None:
+         # 自定义注册指标函数
+        self.processors:List[BaseSindexer] = [
+            
+        ]
         # k线数据
         self.klines:List[KlineModel] = self.cover_to_model(klines)
         # 当前游标
@@ -54,7 +55,7 @@ class SindexerProcessor(BaseProcessor):
                 m.VOL = float(v)
                 m.AMOUNT = float(a)
                 newklines.append(m)
-            klines.clear()
+            # klines.clear()
         return newklines
     
     def get_date(self,date:str):
@@ -101,14 +102,16 @@ class SindexerProcessor(BaseProcessor):
     def regs(self):
         # 给自定义指标注册基础函数
         for cls in self.__processors:
-            obj:BaseSindexer = cls(self.klines,self.cursor,self.functioner)
+            obj:BaseSindexer = cls(self.klines,self.cursor)
+            obj.set_functioner(self.functioner)
             # self.functioner.register(obj)
             # setattr(obj,cls.__typename__,types.MethodType(cls.call, obj))
             
         # 把指标公式器都注册并实例化
         ps = []
         for item in self.processors:
-            obj:BaseSindexer = item(self.klines,self.cursor,self.functioner)
+            obj:BaseSindexer = item(self.klines,self.cursor)
+            obj.set_functioner(self.functioner)
             # self.functioner.register(obj)
             ps.append(obj)
         self.processors = ps

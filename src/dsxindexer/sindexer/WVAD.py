@@ -2,15 +2,18 @@ from dsxindexer.configer import DSX_FIELD_STR
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.base_sindexer import BaseSindexer,SindexerResult
 
-class MACD(BaseSindexer):
-    """MACD
+class WVAD(BaseSindexer):
+    """WVAD 威廉变异离散量
+    计算公式：
+    WVAD:SUM((CLOSE-OPEN)/(HIGH-LOW)*VOL,N)/10000;
+    MAWVAD:MA(WVAD,M);
     """
-    __typename__ = "MACD"
+    __typename__ = "WVAD"
 
     def formula(self):
-        return Formulas.MACD()
+        return Formulas.WVAD()
     
     # 公式解析器会调用此方法
-    def call(self,X:DSX_FIELD_STR,SHORT=12,LONG=26,MID=9):
-        f = Formulas.MACD(X,SHORT,LONG,MID)
+    def call(self,N=24,M=6):
+        f = Formulas.WVAD(N,M)
         if f: return self.parser(f,self.__typename__)
