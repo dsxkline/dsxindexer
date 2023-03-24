@@ -124,6 +124,10 @@ class Lexer:
                 # 如果变量名含有特殊字符，报错
                 raise DsxindexerVariableNameError("变量命名错误，含有特殊字符：%s" % self.current_char) 
             self.next()
+        if result==TokenType.AND: 
+            return Token(TokenType.AND, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
+        if result==TokenType.OR: return Token(TokenType.OR, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
+        if result==TokenType.NOT: return Token(TokenType.NOT, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
         return Token(ttype, str(result),self.direction,location=(self.row,self.col),context=self.current_line)
     
     def get_function(self,func_name):
@@ -279,14 +283,14 @@ class Lexer:
                 self.next()
                 if self.current_char == '=':
                     self.next()
-                    return Token(TokenType.GREATERTHEN_AND, ">=",self.direction,location=(self.row,self.col),context=self.current_line)
+                    return Token(TokenType.GREATERTHEN_EQUAL, ">=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.GREATERTHEN, ">",self.direction,location=(self.row,self.col),context=self.current_line)
             # 识别小于等于
             if self.current_char == '<':
                 self.next()
                 if self.current_char == '=':
                     self.next()
-                    return Token(TokenType.LESSTHEN_AND, "<=",self.direction,location=(self.row,self.col),context=self.current_line)
+                    return Token(TokenType.LESSTHEN_EQUAL, "<=",self.direction,location=(self.row,self.col),context=self.current_line)
                 return Token(TokenType.LESSTHEN, "<",self.direction,location=(self.row,self.col),context=self.current_line)
             # 识别与号
             if self.current_char == '&':

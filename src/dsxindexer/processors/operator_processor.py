@@ -1,5 +1,6 @@
 from dsxindexer.operators.andor_operator import AndOrOperator
 from dsxindexer.operators.grealess_operator import GreaLessOperator
+from dsxindexer.operators.minus_operator import MinusOperator
 from dsxindexer.processors.base_processor import BaseProcessor
 from dsxindexer.operators.assign_operator import AssignOperator
 from dsxindexer.operators.muldiv_operator import MulDivOperator
@@ -16,12 +17,14 @@ class OperatorProcessor(BaseProcessor):
         AssignOperator,
         # 乘除
         MulDivOperator,
-        # 与或
-        AndOrOperator,
+        # # 与或
+        # AndOrOperator,
         # 小于等于
         GreaLessOperator,
         # 等于
         EqualOperator,
+        # 负号
+        MinusOperator,
     ]
 
     def __init__(self) -> None:

@@ -1,9 +1,35 @@
 # dsxindexer
- 量化指标公式编辑器框架
+ 量化指标公式编辑器框架,目前支持部分通达信公式，因为公式太多，所以慢慢完善中，有兴趣的朋友可以自己实现哦。
 
-## 使用方法
+## 安装
+
+```
+pip install dsxindexer
+```
+
+## 使用
+
 ```python
-import traceback
+# 导入包
+import dsxindexer
+# 导入数据工具箱
+import dsxquant
+# 首先获取K线历史数据
+klines = dsxquant.get_klines("000001",dsxquant.market.SZ).datas()
+klines:list = klines.data
+klines.reverse()
+# 创建指标处理器
+sp = dsxindexer.sindexer(klines)
+# 注册系统指标
+sp.register(dsxindexer.INDEXER.WVAD)
+# 执行计算结果
+result = sp.execute()
+```
+
+## 自定义指标公式
+
+
+```python
 import dsxindexer
 import dsxquant
 
@@ -33,6 +59,30 @@ class ABCD(dsxindexer.BaseSindexer):
         哈哈:!90;
         """
 
+# 获取K线历史数据
+klines = dsxquant.get_klines("000001",dsxquant.market.SZ).datas()
+klines:list = klines.data
+klines.reverse()
+dsxindexer.logger.info("开始处理....")
+# 指标处理器
+sp = dsxindexer.sindexer(klines)
+# 注册自定义指标
+sp.register(ABCD)
+# 执行计算结果
+result = sp.execute()
+# 取最后一个
+model = result[-1]
+dsxindexer.logger.info(model.DATE+" %s" % vars(model.ABCD))
+
+```
+
+## 自定义指标方式
+
+目前指标支持系统指标，自定义指标，自定义可分为两种方式：继承和工厂方式
+
+### 继承方式
+
+```python
 class MAn(dsxindexer.BaseSindexer):
     """MAn
     """
@@ -45,32 +95,52 @@ class MAn(dsxindexer.BaseSindexer):
         MA30:MA(CLOSE,30);
         MA60:MA(CLOSE,60);
         """
-        
-if __name__=="__main__":
-    try:
-        # logger.setLevel(logging.INFO)
-        # 获取K线历史数据
-        klines = dsxquant.get_klines("000001",dsxquant.market.SZ).datas()
-        klines:list = klines.data
-        klines.reverse()
-        dsxindexer.logger.info("开始处理....")
-        # 指标处理器
-        sp = dsxindexer.sindexer(klines)
-        # 注册自定义指标
-        sp.register(ABCD)
-        # 注册系统指标
-        sp.register(dsxindexer.INDEXER.WVAD)
-        sp.register(MAn)
-        # 通过指标工厂自定义指标
-        MA10 = dsxindexer.factory.create("MA10","MA10:MA(CLOSE,10);")
-        sp.register(MA10)
-        # 执行计算结果
-        result = sp.execute()
-        # 取最后一个
-        model = result[-1]
-        dsxindexer.logger.info(model.DATE+" %s" % vars(model.ABCD))
-        dsxindexer.logger.info(model.DATE+" %s" % vars(model.WVAD))
-    except Exception as e:
-        dsxindexer.logger.error(e)
-        traceback.print_exc()
+# 指标处理器
+sp = dsxindexer.sindexer(klines)
+sp.register(MAn)
+# 执行计算结果
+result = sp.execute()
 ```
+
+### 工厂方式如下
+
+```python
+# 指标处理器
+sp = dsxindexer.sindexer(klines)
+# 通过指标工厂自定义指标
+MA10 = dsxindexer.factory.create("MA10","MA10:MA(CLOSE,10);")
+sp.register(MA10)
+# 执行计算结果
+result = sp.execute()
+```
+
+## 使用系统指标
+
+目前支持大概几十个系统指标，后续不断完善中....
+
+
+### 常用系统指标
+```python
+# 系统默认指标
+class INDEXER:
+    BOLL="BOLL"
+    BRAR="BRAR"
+    CCI="CCI"
+    CDP="CDP"
+    CR="CR"
+    DMA="DMA"
+    EMV="EMV"
+    EXPMA="EXPMA"
+    KDJ="KDJ"
+    MACD="MACD"
+    MIKE="MIKE"
+    OBV="OBV"
+    PSY="PSY"
+    ROC="ROC"
+    RSI="RSI"
+    TRIX="TRIX"
+    VR="VR"
+    WR="WR"
+    WVAD="WVAD"
+```
+

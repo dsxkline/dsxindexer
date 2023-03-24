@@ -12,7 +12,7 @@ from dsxindexer.functioner import Functioner
 from dsxindexer.processors.base_processor import BaseProcessor
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from typing import List
-
+from progressbar import ProgressBar
 class SindexerProcessor(BaseProcessor):
 
     # 内置一些底层函数，如果是通过指标记录编写的可以在这里初始化注册
@@ -74,6 +74,9 @@ class SindexerProcessor(BaseProcessor):
         # 把指标公式都注册进解析器函数库
         self.regs()
         # executor = ThreadPoolExecutor(max_workers=self.processors.__len__())
+        pbar = ProgressBar(self.klines.__len__())
+        pbar.start()
+        i = 0
         for item in self.klines:
             # 计算所有注册指标
             # futures = []
@@ -94,9 +97,11 @@ class SindexerProcessor(BaseProcessor):
                 if result!=None:
                     setattr(item,sindexer.__typename__,result)
             self.next()
+            pbar.update(i)
+            i += 1
         # executor.shutdown()
         t = time.time() - t
-        logger.info("编译用时:%s s" % t)
+        # logger.info("编译用时:%s s" % t)
         return self.klines
 
     def regs(self):
