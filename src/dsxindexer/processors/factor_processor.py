@@ -1,4 +1,5 @@
 from dsxindexer.factors.float_factor import FloatFactor
+from dsxindexer.factors.minus_factor import MinusFactor
 from dsxindexer.processors.base_processor import BaseProcessor
 from dsxindexer.factors.function_factor import FunctionFactor
 from dsxindexer.factors.newline_factor import NewlineFactor
@@ -20,7 +21,8 @@ class FactorProcessor(BaseProcessor):
         LParenFactor,
         VariableFactor,
         NewlineFactor,
-        FunctionFactor
+        FunctionFactor,
+        MinusFactor,
     ]
 
     def __init__(self) -> None:

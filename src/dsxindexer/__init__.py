@@ -2,6 +2,7 @@ from dsxindexer.processors.sindexer_processor import SindexerProcessor as sindex
 from dsxindexer.configer import logger
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from dsxindexer.sindexer.sindexer_factory import SindexerFactory as factory
+from dsxindexer.sindexer.models.kline_model import KlineModel
 # 系统默认指标
 class INDEXER:
     BOLL="BOLL"

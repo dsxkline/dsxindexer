@@ -75,9 +75,9 @@ class TokenType:
     # 小于
     LESSTHEN = "LESSTHEN"
     # 大于
-    GREATERTHEN_AND= "GREATERTHEN_AND"
+    GREATERTHEN_EQUAL= "GREATERTHEN_EQUAL"
     # 小于
-    LESSTHEN_AND = "LESSTHEN_AND"
+    LESSTHEN_EQUAL = "LESSTHEN_EQUAL"
     # and
     AND = "AND"
     # or

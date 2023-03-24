@@ -11,7 +11,7 @@ class AndOrOperator(BaseOperator):
             op = self.parser.current_token
             self.parser.eat(op.type)
             # 解析符号右边表达式
-            factor = self.parser.factor()
+            factor = self.parser.term()
             if op.type==TokenType.AND:
                 rs = result and factor
                 logger.debug("处理与：%s and %s = %s"%(result,factor,rs))

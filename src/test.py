@@ -11,6 +11,11 @@ class ABCD(dsxindexer.BaseSindexer):
 
     def formula(self):
         return """
+        sar:SAR(4,2,20);
+        sart:SARTURN(4,2,20);
+        cost:COST(50);
+        VOL30:MA(VOL,30);
+        buy:VOL>VOL30 AND VOL30>0 AND REF(VOL,1)>REF(VOL30,1) AND VOL>REF(VOL,1);
         long:MACD.LONG;
         金叉:CROSS(MACD.DIF,MACD.DEA);
         死叉:LONGCROSS(MACD.DIF,MACD.DEA,5) AND MACD.DIF<-0.1 ;

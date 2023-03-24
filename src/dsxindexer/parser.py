@@ -8,6 +8,7 @@ Created on Tue Nov 15 16:00:04 2022
 @email: 934476300@qq.com
 @website: www.dsxquant.com
 """
+from dsxindexer.operators.andor_operator import AndOrOperator
 from dsxindexer.operators.muldiv_operator import MulDivOperator
 from dsxindexer.operators.plusminus_operator import PlusMinusOperator
 from dsxindexer.processors.operator_processor import OperatorProcessor
@@ -55,6 +56,7 @@ class Parser:
     def expr(self):
         # 处理项开始
         result = self.term()
+        result = AndOrOperator(self.current_token,self,result).call()
         # 最后处理加减
         result = PlusMinusOperator(self.current_token,self,result).call()
         return result
