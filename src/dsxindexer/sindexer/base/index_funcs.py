@@ -130,11 +130,11 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
     SAR(N,S,M),N为计算周期,S为步长,M为极值
     SAR(10,2,20)表示计算10日抛物转向，步长为2%，极限值为20%
     """
-    if self.cursor.index<N: return
+    if self.cursor.index<N-1: return
     # 这个key主要用来保存上一个计算值
     last_key = ""+str(N)+"_"+str(S)+"_"+str(M)
     # 取得第一个K线下标
-    start = max(0,self.cursor.index - N)
+    start = max(0,self.cursor.index - N+1)
     close = self.CLOSE
     high = self.HIGH
     low = self.LOW
@@ -145,7 +145,7 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
     # SAR值
     sar = 0
     # 第一个收盘价
-    close_0 = self.REF("CLOSE",start)
+    close_0 = self.GET("CLOSE",start)
     # 若Tn周期为上涨趋势，EP(Tn-1)为Tn-1周期的最高价，若Tn周期为下跌趋势，EP(Tn-1)为Tn-1周期的最 低价；
     max_high = self.HHV("HIGH",N)
     min_low = self.LLV("LOW",N)
@@ -170,7 +170,7 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
     if(last_sar) :
         # 上一个趋势
         ll_qushi = self.REF("QS"+last_key)
-        # 如果上涨趋势当前的收盘价小于 sar ，则表明进入反转下跌
+        # 如果上涨趋势当前的最低价小于 sar ，则表明进入反转下跌
         if ll_qushi and low<=last_sar:
             ep = min_low
             sar = max_high
@@ -178,7 +178,7 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
             # 周期反转
             qushi = not ll_qushi
         elif not ll_qushi and high>=last_sar:
-            # 如果下跌趋势当前的收盘价大于sar ，则表明进入反转上涨
+            # 如果下跌趋势当前的最高价大于sar ，则表明进入反转上涨
             ep = max_high
             sar = min_low
             af = 0
@@ -222,11 +222,14 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
                 ep = min_low
                 sar = max_high
                 af = 0
+                qushi = not qushi
+
             elif(not qushi and high>=sar):
                 # 如果下跌趋势当前的收盘价大于sar ，则表明进入反转上涨
                 ep = max_high
                 sar = min_low
                 af = 0
+                qushi = not qushi
     self.save_temp("AF"+last_key,af)
     self.save_temp("EP"+last_key,ep)
     self.save_temp("QS"+last_key,qushi)
@@ -234,7 +237,7 @@ def SAR(self:BaseSindexer,N:int,S:int,M:int):
     return sar
 
 
-def SARTURN(self:BaseSindexer,N:int,S,M):
+def SARTURN(self:BaseSindexer,N:int,S:int,M:int):
     """抛物转向点
     用法:SARTURN(N,S,M),N为计算周期,S为步长,M为极值,若发生向上转向则返回1,若发生向下转向则返回-1,否则为0
     """

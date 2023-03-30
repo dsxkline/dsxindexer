@@ -21,7 +21,7 @@ klines.reverse()
 # 创建指标处理器
 sp = dsxindexer.sindexer(klines)
 # 注册系统指标
-sp.register(dsxindexer.INDEXER.WVAD)
+sp.register(dsxindexer.INDEXER.MACD)
 # 执行计算结果
 result = sp.execute()
 ```
@@ -76,7 +76,7 @@ dsxindexer.logger.info(model.DATE+" %s" % vars(model.ABCD))
 
 ```
 
-## 自定义指标方式
+## 指标编写方式
 
 目前指标支持系统指标，自定义指标，自定义可分为两种方式：继承和工厂方式
 
@@ -102,7 +102,7 @@ sp.register(MAn)
 result = sp.execute()
 ```
 
-### 工厂方式如下
+### 工厂方式
 
 ```python
 # 指标处理器
