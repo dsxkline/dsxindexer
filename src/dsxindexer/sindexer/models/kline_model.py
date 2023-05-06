@@ -1,3 +1,4 @@
+
 class KlineModel:
     def __init__(self) -> None:
         self.DATE:str
@@ -14,4 +15,7 @@ class KlineModel:
         self.CLOSE:float
         self.VOL:float
         self.AMOUNT:float
+
+    def setvalue(self,key,value):
+        self.__setattr__(key,value)
     

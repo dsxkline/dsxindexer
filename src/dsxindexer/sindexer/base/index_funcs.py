@@ -1,6 +1,7 @@
 """指标函数(PEAK、SAR、COSET、WINNER、ZIG等)
 """
 
+import math
 from dsxindexer.configer import DSX_FIELD_STR
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 
@@ -280,12 +281,114 @@ def ZIG(self:BaseSindexer,K:int,N:float):
     ZIG(K,N),当价格变化量超过N%时转向,K表示0:开盘价,1:最高价,2:最低价,3:收盘价
     ZIG(3,5)表示收盘价的5%的ZIG转向
     """
+    zig = None
+    # 计算过程缓存
+    key = "zig_%s_%s_" % (K,N)
+    CLOSE = "CLOSE"
+    if K==0: CLOSE = "OPEN"
+    if K==1: CLOSE = "HIGH"
+    if K==2: CLOSE = "LOW"
+    if K==3: CLOSE = "CLOSE"
+    # 当前值
+    value = self.GET(CLOSE)
+    # 上一个低点
+    zig_low = self.REF(key+"low")
+    if not zig_low:zig_low = value
+    # 上一个高点
+    zig_high = self.REF(key+"high")
+    if not zig_high:zig_high = value
+    # 上一个低点位置
+    zig_low_day = self.REF(key+"low_day")
+    if zig_low_day==None:zig_low_day = self.cursor.index
+    # 上一个高点位置
+    zig_high_day = self.REF(key+"high_day")
+    if zig_high_day==None:zig_high_day = self.cursor.index
+    # 默认继承
+    self.save_temp(key+"low",zig_low)
+    self.save_temp(key+"high",zig_high)
+    self.save_temp(key+"high_day",zig_high_day)
+    self.save_temp(key+"low_day",zig_low_day)
+    
+    # 极点阀值，计算跟上一个低点的阀值
+    fz = 100 * (value - zig_low) / zig_low
+    # 如果极点阀值大于N，这个是高点
+    if fz>=N:
+        zig_max = self.HHV(CLOSE, self.cursor.index-zig_low_day);
+        if value>=zig_max:
+            # 更新中间的zig值
+            self.__ZIG(CLOSE,zig_low_day,1)
+            # 更新极点
+            zig = value
+            self.save_temp(key+"high",value)
+            self.save_temp(key+"high_day",self.cursor.index)
+        
+    # 低点阀值
+    fz = 100 * (value - zig_high) / zig_high
+    if fz<=-N:
+        zig_min = self.LLV(CLOSE, self.cursor.index-zig_high_day)
+        if value<=zig_min:
+            # 更新中间的zig值
+            self.__ZIG(CLOSE,zig_high_day,0)
+            # 更新极点
+            zig = value
+            self.save_temp(key+"low",value)
+            self.save_temp(key+"low_day",self.cursor.index)
+
+    # 最新一个k线值
+    if(self.cursor.index==self.cursor.count-1):
+        # 高点延续
+        if zig_high_day>zig_low_day:
+            # 更新中间的zig值
+            self.__ZIG(CLOSE,zig_high_day,0)
+            # 更新极点
+            zig = value
+            self.save_temp(key+"low",value)
+            self.save_temp(key+"low_day",self.cursor.index)
+        else:
+            # 更新中间的zig值
+            self.__ZIG(CLOSE,zig_low_day,1)
+            # 更新极点
+            zig = value
+            self.save_temp(key+"high",value)
+            self.save_temp(key+"high_day",self.cursor.index)
+    
+    return zig
+       
+    
+def __ZIG(self:BaseSindexer,CLOSE,day,type=0):
+    # 计算斜边长度
+    first_value = self.GET(CLOSE,day)
+    a = self.cursor.index - day
+    b = first_value - self.GET(CLOSE)
+    if(type>0):
+        # 低到高
+        b = self.GET(CLOSE) - first_value
+    c = math.sqrt(a*a + b*b)
+    # 计算b边长对向的角度,后面根据角度即可计算斜线c
+    thetb = math.acos(a / c) * 180 / math.pi
+    # 之前的低点位置全部为空
+    for i in range(self.cursor.index-1,day,-1):
+        a = i - day
+        c = a / math.cos(thetb * math.pi / 180)
+        b = first_value - math.sqrt(c ** 2 - a ** 2)
+        if(type>0):
+            b = first_value + math.sqrt(c ** 2 - a ** 2)
+        # 更新之前的ZIG指标值
+        subitem = self.klines[i]
+        if hasattr(subitem,self.namespace):
+            namespace = getattr(subitem,self.namespace)
+            if namespace and self.variable_name:
+                if hasattr(namespace,self.variable_name):
+                    setattr(namespace,self.variable_name,b)
+        
+
+
 def ZIGA(self:BaseSindexer,K:int,N:float):
     """反向之字转向 属于未来函数
     用法:
     ZIGA(K,X),当价格变化超过X时转向,K表示0:开盘价,1:最高价,2:最低价,3:收盘价,其余:数组信息
     例如:
-    ZIGA(3,1.5)表示收盘价变化1.5元的ZIGA转向
+    ZIGA(3,1.5)表示收盘价变化1.5%的ZIGA转向
     """
 
 def COSTEX(self:BaseSindexer,A:DSX_FIELD_STR,B:DSX_FIELD_STR):

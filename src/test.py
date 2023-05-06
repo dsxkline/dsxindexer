@@ -11,6 +11,7 @@ class ABCD(dsxindexer.BaseSindexer):
 
     def formula(self):
         return """
+        zig:ZIG(3,5);
         sar:SAR(4,2,20);
         sart:SARTURN(4,2,20);
         cost:COST(50);
@@ -50,12 +51,14 @@ if __name__=="__main__":
     try:
         # logger.setLevel(logging.INFO)
         # 获取K线历史数据
-        klines = dsxquant.get_klines("000001",dsxquant.market.SZ).datas()
+        symbol = "000001"
+        market = dsxquant.market.SZ
+        klines = dsxquant.get_klines(symbol,market,page_size=1000).datas()
         klines:list = klines.data
         klines.reverse()
         dsxindexer.logger.info("开始处理....")
         # 指标处理器
-        sp = dsxindexer.sindexer(klines)
+        sp = dsxindexer.sindexer(klines,symbol,market,enable_cache=False)
         # 注册自定义指标
         sp.register(ABCD)
         # 注册系统指标
