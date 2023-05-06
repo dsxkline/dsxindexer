@@ -1,4 +1,5 @@
 import logging,logging.config
+import os
 DEBUG = False
 if DEBUG:
     LOGLEVEL = logging.DEBUG
@@ -98,6 +99,7 @@ class ExpreItemDirection:
 
 class Cursor:
     index:int = 0
+    count:int = 0
     
 # 表达式结束符
 EXPR_END_CHART = ";"
@@ -106,3 +108,5 @@ ASSIGN_CHART = ":="
 # 注释符 开始和结束标签
 ANNOTATION_CHART = ("#","\n")
 ANNOTATION_CHART_OTHER = ("{","}")
+# 缓存地址
+CACHE_PATH = os.path.dirname(os.path.abspath(__file__))+"/caches"

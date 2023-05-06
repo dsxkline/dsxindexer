@@ -2,7 +2,6 @@ from concurrent.futures import ThreadPoolExecutor,wait,as_completed
 import datetime
 import time
 import types
-
 from dsxindexer.configer import Cursor,logger
 from dsxindexer.sindexer.fomulas import Formulas
 from dsxindexer.sindexer.models.kline_model import KlineModel
@@ -13,6 +12,8 @@ from dsxindexer.processors.base_processor import BaseProcessor
 from dsxindexer.sindexer.base_sindexer import BaseSindexer
 from typing import List
 from progressbar import ProgressBar
+from numba import njit
+
 class SindexerProcessor(BaseProcessor):
 
     # 内置一些底层函数，如果是通过指标记录编写的可以在这里初始化注册
@@ -20,7 +21,7 @@ class SindexerProcessor(BaseProcessor):
     ]
    
 
-    def __init__(self,klines:list=None) -> None:
+    def __init__(self,klines:list=None,symbol:str=None,market:int=None,enable_cache:bool=True) -> None:
          # 自定义注册指标函数
         self.processors:List[BaseSindexer] = [
             
@@ -29,9 +30,12 @@ class SindexerProcessor(BaseProcessor):
         self.klines:List[KlineModel] = self.cover_to_model(klines)
         # 当前游标
         self.cursor = Cursor()
+        self.cursor.count = self.klines.__len__()
+        self.symbol = symbol
+        self.market = market
         # 初始化一个函数库，集成了函数和内存空间
-        self.functioner = Functioner()
-        pass
+        self.functioner = Functioner(self.klines,self.symbol,self.market,self.cursor,enable_cache)
+        
     
     def cover_to_model(self,klines:list):
         newklines = []
@@ -68,16 +72,27 @@ class SindexerProcessor(BaseProcessor):
     
     def next(self):
         self.cursor.index += 1
+        self.cursor.count = self.klines.__len__()
     
     def execute(self):
         t = time.time()
         # 把指标公式都注册进解析器函数库
         self.regs()
         # executor = ThreadPoolExecutor(max_workers=self.processors.__len__())
-        pbar = ProgressBar(self.klines.__len__())
+        
+        self.execute_action(self.klines,self.processors)
+        # executor.shutdown()
+        t = time.time() - t
+        logger.info("编译用时:%s s" % t)
+        return self.klines
+    
+    # @njit
+    def execute_action(self,klines,processors):
+        # i = 0
+        pbar:ProgressBar = ProgressBar(self.klines.__len__())
         pbar.start()
-        i = 0
-        for item in self.klines:
+        for i in range(self.klines.__len__()):
+            item = self.klines[i]
             # 计算所有注册指标
             # futures = []
             # for sindexer in self.processors:
@@ -95,14 +110,11 @@ class SindexerProcessor(BaseProcessor):
                 # 得到指标的值
                 result = sindexer.execute()
                 if result!=None:
+                    # item.setvalue(sindexer.__typename__,result)
                     setattr(item,sindexer.__typename__,result)
             self.next()
             pbar.update(i)
-            i += 1
-        # executor.shutdown()
-        t = time.time() - t
-        # logger.info("编译用时:%s s" % t)
-        return self.klines
+            # i += 1
 
     def regs(self):
         # 给自定义指标注册基础函数

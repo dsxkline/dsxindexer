@@ -1,6 +1,7 @@
+import hashlib
 import re
 import threading
-from dsxindexer.configer import logger
+from dsxindexer.configer import Cursor, logger
 
 # def singleton(cls):
 #     instances = {}
@@ -21,7 +22,12 @@ def synchronized(func):
 
 # @singleton
 class Functioner:
-    def __init__(self) -> None:
+    def __init__(self,klines:list=None,symbol:str=None,market:int=None,cursor:Cursor=None,enable_cache:bool=True) -> None:
+        self.klines = klines
+        self.symbol = symbol
+        self.market = market
+        self.cursor = cursor
+        self.enable_cache = enable_cache
         self.function_exs = []
         self.variables = {}
         pass
@@ -55,6 +61,10 @@ class Functioner:
     
     def ABS(self,a):
         return abs(a)
+    
+    def MD5(self,s:str):
+        md5 = hashlib.md5(s.encode('utf-8')).hexdigest()
+        return md5
     
 
     @synchronized

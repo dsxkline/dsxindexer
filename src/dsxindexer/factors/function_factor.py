@@ -1,16 +1,21 @@
 import copy
 import hashlib
 import inspect
+import json
+import os
 import re
 from dsxindexer.processors.base_processor import BaseProcessor
 from dsxindexer.configer import DSX_FIELD_STR, DsxindexerMethodParamMisError, TokenType,ExpreItemDirection,DsxindexerMethodNotFoundError,logger,ASSIGN_CHART
 from dsxindexer.tokenizer import Token
 from dsxindexer.factors.base_factor import BaseFactor
-from dsxindexer.configer import RegRolues
+from dsxindexer.configer import RegRolues,CACHE_PATH
+from dsxindexer.functioner import Functioner
 
 class FunctionFactor(BaseFactor):
     # 设置处理标识类型
     type_name = TokenType.FUNCTION
+    # 缓存文件
+    cache_content = None
 
     def call(self):
         # 处理函数
@@ -22,6 +27,9 @@ class FunctionFactor(BaseFactor):
         return result
     
     def parser_func(self,expre):
+        # 启用解析缓存
+        result = self.get_cache_parse(expre)
+        if result: return result
         funcs = self.parse_function(expre)
         if funcs:
             func_name = funcs[0]
@@ -40,6 +48,8 @@ class FunctionFactor(BaseFactor):
                         if hasattr(obj,func_name):
                             mt = getattr(obj, func_name)
                             if callable(mt):
+                                # 把变量名继承下来，用于更新前值
+                                setattr(obj,"variable_name",self.parser.last_avariable)
                                 method = mt
                                 break
                 del obj
@@ -53,12 +63,14 @@ class FunctionFactor(BaseFactor):
                     if type(obj).__name__ == func_name:
                         # 命名空间继承，命名空间继承后，变量也会继承
                         setattr(obj,"namespace",self.parser.namespace)
+                        setattr(obj,"variable_name",self.parser.last_avariable)
                         method = getattr(obj,"call")
                         break
                     # 或者直接查找
                     if hasattr(obj,func_name):
                         mt = getattr(obj, func_name)
                         if callable(mt):
+                            setattr(obj,"variable_name",self.parser.last_avariable)
                             method = mt
                             break
                     del obj
@@ -97,6 +109,7 @@ class FunctionFactor(BaseFactor):
             # 调用方法
             result = method(*args)
             logger.debug("正则处理函数:%s(%s)=%s"%(func_name,args,result))
+            self.save_cache_parse(expre,result)
             return result
         
     def md5(self,text):
@@ -139,5 +152,60 @@ class FunctionFactor(BaseFactor):
                 current_param += c
         params.append(current_param.strip())
         return (function_name,params)
-
+    
+    def get_cache_filename(self,expre):
+        funcer:Functioner = self.parser.funcer
+        symbol = funcer.symbol
+        market = funcer.market
+        cursor = funcer.cursor
+        klines = funcer.klines
+        if not symbol or market==None or not cursor or not klines : return (None,None)
+        date = str(cursor.index)
+        if cursor.index<klines.__len__():
+            item = klines[cursor.index]
+            date = item.DATE
+        key = "%s_%s_%s_%s_%s" % (symbol,market,cursor.index,date,expre)
+        # key = funcer.MD5(key)
+        path = CACHE_PATH+"/funcer/"+str(market)+"-"+symbol+"/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        filename = path+"func.txt"
+        return (filename,key)
+    
+    def get_cache_parse(self,expre):
+        """从缓存读取解析值
+        """
+        if not self.parser.funcer.enable_cache:return
+        filename,key = self.get_cache_filename(expre)
+        if not filename:return
+        result = FunctionFactor.cache_content
+        if result==None:
+            if os.path.exists(filename):
+                with open(filename) as f:
+                    result = f.read()
+                    if result:
+                        result:dict = json.loads(result)
+                        FunctionFactor.cache_content = result
+        if isinstance(result,dict):
+            result = result.get(key)
+            return result
+                
+    def save_cache_parse(self,expre,result):
+        """把函数解析结果保存到缓存
+        """
+        if not self.parser.funcer.enable_cache:return
+        filename,key = self.get_cache_filename(expre)
+        if not filename:return
+        content = FunctionFactor.cache_content
+        if not content:
+            content = {}
+        if result!=None and isinstance(content,dict):
+            content[key] = result
+            FunctionFactor.cache_content = content
+            if self.parser.funcer.cursor.index>=self.parser.funcer.cursor.count-1:
+                with open(filename,"w") as f:
+                    result = json.dumps(FunctionFactor.cache_content)
+                    f.write(result)
+        
+            
         
