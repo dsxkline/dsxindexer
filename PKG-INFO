@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: dsxindexer
-Version: 1.0.0
-Summary: dsxindexer 是一个指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能
+Version: 1.1.0
+Summary: dsxindexer 是一个基于麦语言的指标生成器，支持常用指标，自定义扩展指标算法，公式编辑功能
 Home-page: https://github.com/dsxkline/dsxindexer
 Author: fangyunsm
 Author-email: 934476300@qq.com
