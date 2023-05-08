@@ -1,6 +1,6 @@
 [project]
 name = "dsxindexer"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
   { name="fangyunsm", email="934476300@qq.com" },
 ]
